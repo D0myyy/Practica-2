@@ -1,16 +1,21 @@
 # Rezervare bilete avion (Zboruri, Pasageri, Bilete)
 
+## Build and run
+```bash
+javac -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main.java && java -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main
+```
+
 ### Compile the program
 ```bash
-javac --module-path "d:\Practica-2\javafx-sdk-17.0.19\lib" --add-modules javafx.controls Main.java
+javac -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main.java
 ```
 
 ### Run the program
 ```bash
-java --module-path "d:\Practica-2\javafx-sdk-17.0.19\lib" --add-modules javafx.controls -cp ".;lib\\mssql-jdbc-11.2.3.jre11.jar" Main
+java -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main
 ```
 
-### Required runtime files
-- `lib\mssql-jdbc-11.2.3.jre11.jar` must exist before running the app.
-- For Windows Authentication, the Microsoft SQL Server native authentication DLL must also be available on the machine and reachable by the JVM.
-- The SQL script in `BazaDeDate.sql` must already be executed in SQL Server so the database exists before connecting.
+# Steps to make SSMS work properly
+* Run BazaDeDate.sql in SSMS
+* Configuration for SSMS make sure TCP/IP is Enabled (port 1433)
+* ```SQL/mssql-jdbc_auth-13.4.0.x64.dll```  put in ```C:\Program Files\Microsoft\jdk-11.0.12.7-hotspot\bin```

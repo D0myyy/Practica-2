@@ -125,26 +125,135 @@ GO
 -- 10. Inserari
 -- ===============================
 INSERT INTO Aeroporturi (Nume, Oras, Tara, CodIATA) VALUES
-	('Aeroportul International Chisinau', 'Chisinau', 'Moldova', 'KIV'),
-	('Aeroportul International Marculesti', 'Marculesti', 'Moldova', 'MRV'),
-	('Aeroportul International Iasi', 'Iasi', 'Romania', 'IAS'),
-	('Aeroportul Henri Coanda', 'Bucuresti', 'Romania', 'OTP'),
-	('Aeroportul Istanbul', 'Istanbul', 'Turcia', 'IST'),
-	('Aeroportul Luton', 'Londra', 'UK', 'LTN'),
-	('Aeroportul Bergamo', 'Milano', 'Italia', 'BGY');
+    ('Aeroportul International Chisinau', 'Chisinau', 'Moldova', 'KIV'),
+    ('Aeroportul International Marculesti', 'Marculesti', 'Moldova', 'MRV'),
+    ('Aeroportul International Balti', 'Balti', 'Moldova', 'BZY'),
+    ('Aeroportul International Iasi', 'Iasi', 'Romania', 'IAS'),
+    ('Aeroportul Henri Coanda', 'Bucuresti', 'Romania', 'OTP'),
+    ('Aeroportul Baneasa', 'Bucuresti', 'Romania', 'BBU'),
+    ('Aeroportul Cluj Avram Iancu', 'Cluj-Napoca', 'Romania', 'CLJ'),
+    ('Aeroportul Timisoara Traian Vuia', 'Timisoara', 'Romania', 'TSR'),
+    ('Aeroportul Sibiu International', 'Sibiu', 'Romania', 'SBZ'),
+    ('Aeroportul Bacau International', 'Bacau', 'Romania', 'BCM'),
+    ('Aeroportul Suceava Stefan cel Mare', 'Suceava', 'Romania', 'SCV'),
+
+    ('Aeroportul Istanbul', 'Istanbul', 'Turcia', 'IST'),
+    ('Aeroportul Sabiha Gokcen', 'Istanbul', 'Turcia', 'SAW'),
+    ('Aeroportul Ankara Esenboga', 'Ankara', 'Turcia', 'ESB'),
+
+    ('Aeroportul Luton', 'Londra', 'UK', 'LTN'),
+    ('Aeroportul Heathrow', 'Londra', 'UK', 'LHR'),
+    ('Aeroportul Gatwick', 'Londra', 'UK', 'LGW'),
+    ('Aeroportul Manchester', 'Manchester', 'UK', 'MAN'),
+
+    ('Aeroportul Bergamo', 'Milano', 'Italia', 'BGY'),
+    ('Aeroportul Malpensa', 'Milano', 'Italia', 'MXP'),
+    ('Aeroportul Fiumicino', 'Roma', 'Italia', 'FCO'),
+    ('Aeroportul Ciampino', 'Roma', 'Italia', 'CIA'),
+    ('Aeroportul Napoli Capodichino', 'Napoli', 'Italia', 'NAP'),
+
+    ('Aeroportul Barcelona El Prat', 'Barcelona', 'Spania', 'BCN'),
+    ('Aeroportul Madrid Barajas', 'Madrid', 'Spania', 'MAD'),
+    ('Aeroportul Valencia', 'Valencia', 'Spania', 'VLC'),
+    ('Aeroportul Malaga', 'Malaga', 'Spania', 'AGP'),
+
+    ('Aeroportul Charles de Gaulle', 'Paris', 'Franta', 'CDG'),
+    ('Aeroportul Orly', 'Paris', 'Franta', 'ORY'),
+    ('Aeroportul Nice Cote dAzur', 'Nice', 'Franta', 'NCE'),
+    ('Aeroportul Lyon', 'Lyon', 'Franta', 'LYS'),
+
+    ('Aeroportul Frankfurt', 'Frankfurt', 'Germania', 'FRA'),
+    ('Aeroportul Munchen', 'Munchen', 'Germania', 'MUC'),
+    ('Aeroportul Berlin Brandenburg', 'Berlin', 'Germania', 'BER'),
+    ('Aeroportul Dusseldorf', 'Dusseldorf', 'Germania', 'DUS'),
+
+    ('Aeroportul Amsterdam Schiphol', 'Amsterdam', 'Olanda', 'AMS'),
+    ('Aeroportul Eindhoven', 'Eindhoven', 'Olanda', 'EIN'),
+
+    ('Aeroportul Zurich', 'Zurich', 'Elvetia', 'ZRH'),
+    ('Aeroportul Geneva', 'Geneva', 'Elvetia', 'GVA'),
+
+    ('Aeroportul Vienna International', 'Viena', 'Austria', 'VIE'),
+    ('Aeroportul Salzburg', 'Salzburg', 'Austria', 'SZG'),
+
+    ('Aeroportul Athens International', 'Atena', 'Grecia', 'ATH'),
+    ('Aeroportul Thessaloniki', 'Thessaloniki', 'Grecia', 'SKG'),
+
+    ('Aeroportul Warsaw Chopin', 'Varsovia', 'Polonia', 'WAW'),
+    ('Aeroportul Krakow', 'Krakow', 'Polonia', 'KRK'),
+
+    ('Aeroportul Budapest Ferenc Liszt', 'Budapesta', 'Ungaria', 'BUD'),
+    ('Aeroportul Sofia', 'Sofia', 'Bulgaria', 'SOF'),
+
+    ('Aeroportul Dubai International', 'Dubai', 'UAE', 'DXB'),
+    ('Aeroportul Doha Hamad', 'Doha', 'Qatar', 'DOH');
 GO
 
 INSERT INTO Avioane (Model, Capacitate) VALUES
-	('Airbus A320', 180),
-	('Boeing 737', 160),
-	('Airbus A321', 220),
-	('ATR 72', 70),
-	('Embraer E190', 100),
-	('Boeing 737 MAX', 178),
-	('Airbus A319', 150),
-	('ATR 42', 48),
-	('Airbus A220', 130),
-	('Boeing 787', 250);
+    ('Airbus A320', 180),
+    ('Boeing 737', 160),
+    ('Airbus A321', 220),
+    ('ATR 72', 70),
+    ('Embraer E190', 100),
+    ('Boeing 737 MAX 8', 178),
+    ('Airbus A319', 150),
+    ('ATR 42', 48),
+    ('Airbus A220-100', 130),
+    ('Boeing 787-8 Dreamliner', 250),
+
+    ('Boeing 787-9 Dreamliner', 290),
+    ('Boeing 777-300ER', 396),
+    ('Boeing 777-200', 314),
+    ('Boeing 767-300', 218),
+    ('Boeing 757-200', 200),
+
+    ('Airbus A330-200', 247),
+    ('Airbus A330-300', 277),
+    ('Airbus A340-300', 295),
+    ('Airbus A350-900', 300),
+    ('Airbus A350-1000', 350),
+
+    ('Airbus A380', 500),
+    ('Embraer E170', 80),
+    ('Embraer E175', 88),
+    ('Embraer E195', 120),
+    ('Embraer E195-E2', 132),
+
+    ('Bombardier CRJ700', 70),
+    ('Bombardier CRJ900', 90),
+    ('Bombardier CRJ1000', 104),
+
+    ('Sukhoi Superjet 100', 98),
+    ('COMAC C919', 158),
+
+    ('ATR 42-600', 50),
+    ('ATR 72-600', 78),
+
+    ('McDonnell Douglas MD-80', 172),
+    ('McDonnell Douglas MD-90', 153),
+
+    ('McDonnell Douglas MD-11', 293),
+
+    ('Airbus A310', 280),
+    ('Airbus A300', 266),
+
+    ('Boeing 717', 110),
+    ('Boeing 727', 189),
+    ('Boeing 737-800', 189),
+    ('Boeing 737-900', 215),
+
+    ('Airbus A318', 132),
+
+    ('Fokker 70', 80),
+    ('Fokker 100', 107),
+
+    ('Dash 8 Q400', 82),
+
+    ('Antonov An-148', 68),
+    ('Antonov An-158', 99),
+
+    ('Ilyushin Il-96', 262),
+    ('Tupolev Tu-204', 210);
 GO
 
 -- INSERT INTO Locuri (IdAvion, NumarLoc, Clasa)
