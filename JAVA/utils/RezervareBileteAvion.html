@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✈ Rezervare Bilete Avion</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --sidebar: #111827;
+    --panel: #161d2a;
+    --card: #1c2535;
+    --border: #253047;
+    --border2: #1e2d47;
+    --accent: #f59e0b;
+    --accent2: #3b82f6;
+    --accent3: #10b981;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --muted2: #94a3b8;
+    --header-h: 52px;
+    --sidebar-w: 220px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    height: var(--header-h);
+    background: var(--sidebar);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 14px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .topbar-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .topbar-logo span { color: var(--text); }
+  .topbar-divider { width: 1px; height: 26px; background: var(--border); margin: 0 4px; }
+  .topbar-subtitle { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .status-dot { width: 7px; height: 7px; background: var(--accent3); border-radius: 50%; }
+  .status-text { font-size: 11px; color: var(--accent3); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+    flex-shrink: 0;
+  }
+  .nav-section { padding: 0 10px; margin-bottom: 4px; }
+  .nav-section-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 10px 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--muted2);
+    transition: all 0.15s;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 1px;
+  }
+  .nav-item:hover { background: var(--card); color: var(--text); }
+  .nav-item.active { background: rgba(245,158,11,0.12); color: var(--accent); }
+  .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent2);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .nav-badge.green { background: var(--accent3); }
+  .sidebar-bottom { margin-top: auto; padding: 10px; border-top: 1px solid var(--border); }
+  .db-status {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .db-status .dot { width: 6px; height: 6px; background: var(--accent3); border-radius: 50%; }
+  .db-status .info { flex: 1; }
+  .db-status .title { font-size: 11px; font-weight: 600; }
+  .db-status .sub { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; height: 100%; overflow: hidden; }
+  .screen.active { display: flex; }
+
+  /* ── SCREEN HEADER ── */
+  .screen-header {
+    padding: 16px 24px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-shrink: 0;
+  }
+  .screen-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    margin-bottom: 2px;
+  }
+  .screen-sub { font-size: 11px; color: var(--muted); }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 24px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #d97706; }
+  .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.25); }
+  .btn-info { background: rgba(59,130,246,0.15); color: var(--accent2); border: 1px solid rgba(59,130,246,0.3); }
+  .btn-info:hover { background: rgba(59,130,246,0.25); }
+  .btn-success { background: rgba(16,185,129,0.15); color: var(--accent3); border: 1px solid rgba(16,185,129,0.3); }
+  .btn-success:hover { background: rgba(16,185,129,0.25); }
+  .toolbar-spacer { flex: 1; }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 10px;
+    min-width: 200px;
+  }
+  .search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px;
+    width: 100%;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+  .filter-select {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* ── TABLE AREA ── */
+  .table-area { flex: 1; overflow: auto; padding: 16px 24px; background: var(--bg); }
+  .table-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--card); position: sticky; top: 0; z-index: 2; }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border2);
+    color: var(--text);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .td-id { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .td-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent2); }
+  .td-actions { display: flex; gap: 6px; }
+  .action-btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { background: var(--border); }
+  .action-btn.del:hover { background: rgba(239,68,68,0.2); border-color: var(--danger); }
+
+  /* STATUS BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .badge-green { background: rgba(16,185,129,0.15); color: var(--accent3); }
+  .badge-red { background: rgba(239,68,68,0.15); color: var(--danger); }
+  .badge-blue { background: rgba(59,130,246,0.15); color: var(--accent2); }
+  .badge-amber { background: rgba(245,158,11,0.15); color: var(--accent); }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* ── DASHBOARD ── */
+  .dashboard-body { flex: 1; overflow: auto; padding: 20px 24px; background: var(--bg); }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.amber::before { background: var(--accent); }
+  .stat-card.blue::before { background: var(--accent2); }
+  .stat-card.green::before { background: var(--accent3); }
+  .stat-card.red::before { background: var(--danger); }
+  .stat-icon { font-size: 24px; margin-bottom: 10px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; margin-bottom: 2px; }
+  .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .stat-change { font-size: 10px; margin-top: 6px; color: var(--accent3); font-family: 'JetBrains Mono', monospace; }
+
+  .dash-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
+  .dash-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .dash-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dash-card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
+  .dash-card-body { padding: 14px 18px; }
+
+  .flight-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+  .flight-row:last-child { border-bottom: none; }
+  .flight-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); font-weight: 600; min-width: 55px; }
+  .flight-route { flex: 1; font-size: 12px; }
+  .flight-route .from-to { font-weight: 600; font-size: 13px; }
+  .flight-route .time { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .plane-icon { color: var(--muted2); font-size: 14px; transform: rotate(45deg); }
+
+  .mini-stat { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border2); align-items: center; }
+  .mini-stat:last-child { border-bottom: none; }
+  .mini-stat .label { font-size: 12px; color: var(--muted2); }
+  .mini-stat .val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
+
+  /* ── MODAL / DIALOG ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 500px;
+    max-width: 95vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    z-index: 1;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+  .modal-close { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .modal-body { padding: 20px 22px; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 16px 22px; border-top: 1px solid var(--border); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 600; color: var(--muted2); letter-spacing: 0.5px; text-transform: uppercase; }
+  .form-input, .form-select {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 11px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-input.error { border-color: var(--danger); }
+  .form-error { font-size: 10px; color: var(--danger); margin-top: 2px; }
+
+  /* ── REPORTS ── */
+  .reports-body { flex: 1; overflow: auto; padding: 20px 24px; background: var(--bg); }
+  .reports-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .report-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .report-card:hover { border-color: var(--accent); background: rgba(245,158,11,0.04); transform: translateY(-2px); }
+  .report-icon { font-size: 28px; margin-bottom: 12px; }
+  .report-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 5px; }
+  .report-desc { font-size: 11.5px; color: var(--muted2); line-height: 1.5; }
+  .report-tag { display: inline-block; font-size: 10px; font-family: 'JetBrains Mono', monospace; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; margin-top: 10px; color: var(--muted); }
+
+  .report-result {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .report-result-header {
+    padding: 14px 18px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .report-result-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
+
+  /* ── ALERT ── */
+  .alert-box {
+    display: none;
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 200;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    min-width: 260px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    animation: slideIn 0.2s ease;
+  }
+  .alert-box.show { display: flex; align-items: center; gap: 10px; }
+  .alert-box.success { border-color: var(--accent3); }
+  .alert-box.error-alert { border-color: var(--danger); }
+  .alert-icon { font-size: 18px; }
+  .alert-msg { font-size: 13px; font-weight: 500; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* CONFIRM DIALOG */
+  .confirm-dialog {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 26px;
+    width: 360px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    text-align: center;
+  }
+  .confirm-icon { font-size: 36px; margin-bottom: 14px; }
+  .confirm-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+  .confirm-desc { font-size: 12.5px; color: var(--muted2); line-height: 1.5; margin-bottom: 20px; }
+  .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── CHART BAR ── */
+  .chart-bars { display: flex; align-items: flex-end; gap: 10px; height: 100px; padding: 10px 0; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; opacity: 0.8; min-height: 4px; }
+  .bar-label { font-size: 9px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .bar-val { font-size: 9px; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── EMPTY STATE ── */
+  .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 50px; gap: 12px; color: var(--muted); }
+  .empty-icon { font-size: 40px; opacity: 0.3; }
+  .empty-text { font-size: 13px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 2px; padding: 10px 24px 0; background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .tab { padding: 8px 16px; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 12.5px; font-weight: 500; color: var(--muted2); transition: all 0.15s; border: 1px solid transparent; border-bottom: none; position: relative; top: 1px; }
+  .tab.active { background: var(--bg); border-color: var(--border); color: var(--text); }
+
+  /* ── PAGINATION ── */
+  .pagination { display: flex; align-items: center; gap: 6px; padding: 10px 24px; background: var(--panel); border-top: 1px solid var(--border); flex-shrink: 0; }
+  .page-btn { width: 28px; height: 28px; border: 1px solid var(--border); background: var(--card); color: var(--text); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .page-btn.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+  .page-info { font-size: 11px; color: var(--muted); margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">✈ <span>AirBook</span></div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-subtitle">Rezervare Bilete Avion — v1.0</div>
+  <div class="topbar-right">
+    <div class="status-dot"></div>
+    <div class="status-text">Rezervare_bilete_avion · SQL Server</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="nav-section-label">Principal</div>
+    <div class="nav-section">
+      <div class="nav-item active" onclick="showScreen('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </div>
+    </div>
+    <div class="nav-section-label">Management</div>
+    <div class="nav-section">
+      <div class="nav-item" onclick="showScreen('zboruri')">
+        <span class="icon">✈️</span> Zboruri <span class="nav-badge">50</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('pasageri')">
+        <span class="icon">👤</span> Pasageri <span class="nav-badge">50</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('rezervari')">
+        <span class="icon">📋</span> Rezervări <span class="nav-badge">50</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('bilete')">
+        <span class="icon">🎫</span> Bilete <span class="nav-badge green">50</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('plati')">
+        <span class="icon">💳</span> Plăți
+      </div>
+    </div>
+    <div class="nav-section-label">Date</div>
+    <div class="nav-section">
+      <div class="nav-item" onclick="showScreen('aeroporturi')">
+        <span class="icon">🏙</span> Aeroporturi
+      </div>
+      <div class="nav-item" onclick="showScreen('avioane')">
+        <span class="icon">🛩</span> Avioane
+      </div>
+    </div>
+    <div class="nav-section-label">Analitica</div>
+    <div class="nav-section">
+      <div class="nav-item" onclick="showScreen('rapoarte')">
+        <span class="icon">📈</span> Rapoarte
+      </div>
+      <div class="nav-item" onclick="showScreen('export')">
+        <span class="icon">📤</span> Export
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="db-status">
+        <div class="dot"></div>
+        <div class="info">
+          <div class="title">SQL Server</div>
+          <div class="sub">localhost:1433</div>
+        </div>
+        <div style="font-size:11px;color:var(--accent3);">✓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ════════════════════════════════════
+         DASHBOARD
+    ════════════════════════════════════ -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="screen-header">
+        <div class="screen-title">📊 Dashboard</div>
+        <div class="screen-sub">Vedere generală a sistemului de rezervare</div>
+      </div>
+      <div class="dashboard-body">
+        <div class="stats-grid">
+          <div class="stat-card amber">
+            <div class="stat-icon">✈️</div>
+            <div class="stat-val">50</div>
+            <div class="stat-label">Zboruri active</div>
+            <div class="stat-change">↑ +3 astăzi</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-icon">👤</div>
+            <div class="stat-val">50</div>
+            <div class="stat-label">Pasageri înregistrați</div>
+            <div class="stat-change">↑ +2 astăzi</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-icon">🎫</div>
+            <div class="stat-val">50</div>
+            <div class="stat-label">Bilete vândute</div>
+            <div class="stat-change">↑ +8 săptămâna asta</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-icon">💰</div>
+            <div class="stat-val">6 240</div>
+            <div class="stat-label">Venit total (MDL)</div>
+            <div class="stat-change">↑ +15.2%</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">✈ Zboruri Recente</div>
+              <div style="font-size:11px;color:var(--accent);cursor:pointer;" onclick="showScreen('zboruri')">Vezi toate →</div>
+            </div>
+            <div class="dash-card-body">
+              <div class="flight-row">
+                <div class="flight-num">MD101</div>
+                <span class="plane-icon">✈</span>
+                <div class="flight-route">
+                  <div class="from-to">KIV → OTP</div>
+                  <div class="time">09.05 · 08:00 – 10:00</div>
+                </div>
+                <span class="badge badge-green"><span class="badge-dot"></span>Activ</span>
+              </div>
+              <div class="flight-row">
+                <div class="flight-num">MD102</div>
+                <span class="plane-icon">✈</span>
+                <div class="flight-route">
+                  <div class="from-to">KIV → LTN</div>
+                  <div class="time">10.05 · 11:30 – 14:30</div>
+                </div>
+                <span class="badge badge-green"><span class="badge-dot"></span>Activ</span>
+              </div>
+              <div class="flight-row">
+                <div class="flight-num">MD103</div>
+                <span class="plane-icon">✈</span>
+                <div class="flight-route">
+                  <div class="from-to">KIV → BGY</div>
+                  <div class="time">11.05 · 06:45 – 08:45</div>
+                </div>
+                <span class="badge badge-amber"><span class="badge-dot"></span>Boarding</span>
+              </div>
+              <div class="flight-row">
+                <div class="flight-num">MD104</div>
+                <span class="plane-icon">✈</span>
+                <div class="flight-route">
+                  <div class="from-to">KIV → IST</div>
+                  <div class="time">12.05 · 15:00 – 17:30</div>
+                </div>
+                <span class="badge badge-blue"><span class="badge-dot"></span>Programat</span>
+              </div>
+              <div class="flight-row">
+                <div class="flight-num">MD105</div>
+                <span class="plane-icon">✈</span>
+                <div class="flight-route">
+                  <div class="from-to">KIV → FRA</div>
+                  <div class="time">13.05 · 07:20 – 09:50</div>
+                </div>
+                <span class="badge badge-blue"><span class="badge-dot"></span>Programat</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">📊 Statistici</div>
+            </div>
+            <div class="dash-card-body">
+              <div style="margin-bottom:14px;">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace;">BILETE PE ZI (ultimele 7 zile)</div>
+                <div class="chart-bars">
+                  <div class="bar-col"><div class="bar-val">6</div><div class="bar" style="height:40px"></div><div class="bar-label">L</div></div>
+                  <div class="bar-col"><div class="bar-val">9</div><div class="bar" style="height:60px"></div><div class="bar-label">Ma</div></div>
+                  <div class="bar-col"><div class="bar-val">5</div><div class="bar" style="height:33px"></div><div class="bar-label">Mi</div></div>
+                  <div class="bar-col"><div class="bar-val">11</div><div class="bar" style="height:73px"></div><div class="bar-label">J</div></div>
+                  <div class="bar-col"><div class="bar-val">8</div><div class="bar" style="height:53px"></div><div class="bar-label">V</div></div>
+                  <div class="bar-col"><div class="bar-val">12</div><div class="bar" style="height:80px;opacity:1"></div><div class="bar-label">S</div></div>
+                  <div class="bar-col"><div class="bar-val">7</div><div class="bar" style="height:47px"></div><div class="bar-label">D</div></div>
+                </div>
+              </div>
+              <div class="mini-stat"><div class="label">Rată confirmare</div><div class="val" style="color:var(--accent3)">96%</div></div>
+              <div class="mini-stat"><div class="label">Aeroporturi active</div><div class="val">51</div></div>
+              <div class="mini-stat"><div class="label">Avioane disponibile</div><div class="val">49</div></div>
+              <div class="mini-stat"><div class="label">Plăți card</div><div class="val" style="color:var(--accent2)">50%</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         ZBORURI
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-zboruri">
+      <div class="screen-header">
+        <div class="screen-title">✈️ Zboruri</div>
+        <div class="screen-sub">Gestionarea tuturor zborurilor din sistem</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openModal('modal-zbor')">➕ Zbor nou</button>
+        <button class="btn btn-secondary">🔄 Actualizare</button>
+        <div class="toolbar-spacer"></div>
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" placeholder="Caută număr zbor, aeroport...">
+        </div>
+        <select class="filter-select">
+          <option>Toate zborurile</option>
+          <option>Astăzi</option>
+          <option>Această săptămână</option>
+          <option>Economy</option>
+          <option>Business</option>
+        </select>
+      </div>
+      <div class="table-area">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nr. Zbor</th>
+                <th>Plecare</th>
+                <th>Sosire</th>
+                <th>Avion</th>
+                <th>Data Plecare</th>
+                <th>Data Sosire</th>
+                <th>Status</th>
+                <th>Acțiuni</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="td-id">1</td><td class="td-code">MD101</td><td>🏙 KIV — Chișinău</td><td>🏙 OTP — București</td><td>Airbus A320</td><td>09.05.2026 08:00</td><td>09.05.2026 10:00</td><td><span class="badge badge-green"><span class="badge-dot"></span>Activ</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">2</td><td class="td-code">MD102</td><td>🏙 KIV — Chișinău</td><td>🏙 LTN — Londra</td><td>Boeing 737</td><td>10.05.2026 11:30</td><td>10.05.2026 14:30</td><td><span class="badge badge-green"><span class="badge-dot"></span>Activ</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">3</td><td class="td-code">MD103</td><td>🏙 KIV — Chișinău</td><td>🏙 BGY — Milano</td><td>Airbus A321</td><td>11.05.2026 06:45</td><td>11.05.2026 08:45</td><td><span class="badge badge-amber"><span class="badge-dot"></span>Boarding</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">4</td><td class="td-code">MD104</td><td>🏙 KIV — Chișinău</td><td>🏙 IST — Istanbul</td><td>ATR 72</td><td>12.05.2026 15:00</td><td>12.05.2026 17:30</td><td><span class="badge badge-blue"><span class="badge-dot"></span>Programat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">5</td><td class="td-code">MD105</td><td>🏙 KIV — Chișinău</td><td>🏙 FRA — Frankfurt</td><td>Embraer E190</td><td>13.05.2026 07:20</td><td>13.05.2026 09:50</td><td><span class="badge badge-blue"><span class="badge-dot"></span>Programat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">6</td><td class="td-code">MD106</td><td>🏙 KIV — Chișinău</td><td>🏙 CDG — Paris</td><td>Boeing 737 MAX 8</td><td>14.05.2026 09:00</td><td>14.05.2026 11:45</td><td><span class="badge badge-blue"><span class="badge-dot"></span>Programat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">7</td><td class="td-code">MD107</td><td>🏙 KIV — Chișinău</td><td>🏙 MUC — München</td><td>Airbus A319</td><td>15.05.2026 12:15</td><td>15.05.2026 14:15</td><td><span class="badge badge-blue"><span class="badge-dot"></span>Programat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">8</td><td class="td-code">MD108</td><td>🏙 KIV — Chișinău</td><td>🏙 MAD — Madrid</td><td>Airbus A320</td><td>16.05.2026 16:30</td><td>16.05.2026 20:00</td><td><span class="badge badge-red"><span class="badge-dot"></span>Anulat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-zbor')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pagination">
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn">5</button>
+        <button class="page-btn">›</button>
+        <div class="page-info">50 înregistrări · Pagina 1 din 7</div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         PASAGERI
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-pasageri">
+      <div class="screen-header">
+        <div class="screen-title">👤 Pasageri</div>
+        <div class="screen-sub">Baza de date a pasagerilor înregistrați</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openModal('modal-pasager')">➕ Pasager nou</button>
+        <button class="btn btn-secondary">🔄 Actualizare</button>
+        <div class="toolbar-spacer"></div>
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" placeholder="Caută după nume, email, telefon...">
+        </div>
+        <select class="filter-select">
+          <option>Toți pasagerii</option>
+          <option>Cu rezervări active</option>
+          <option>Fără rezervări</option>
+        </select>
+      </div>
+      <div class="table-area">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Nume</th><th>Prenume</th><th>Email</th><th>Telefon</th><th>Rezervări</th><th>Acțiuni</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="td-id">1</td><td>Achirus</td><td>Constantin</td><td style="color:var(--accent2)">achirus@mail.com</td><td class="td-code">060000001</td><td><span class="badge badge-green">2</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">2</td><td>Batitchi</td><td>Nicolae</td><td style="color:var(--accent2)">batitchi@mail.com</td><td class="td-code">060000002</td><td><span class="badge badge-blue">1</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">3</td><td>Besliu</td><td>Dan</td><td style="color:var(--accent2)">besliu@mail.com</td><td class="td-code">060000003</td><td><span class="badge badge-green">3</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">4</td><td>Bragari</td><td>Eduard</td><td style="color:var(--accent2)">bragari@mail.com</td><td class="td-code">060000004</td><td><span class="badge badge-blue">1</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">5</td><td>Caraman</td><td>Pavel</td><td style="color:var(--accent2)">caraman@mail.com</td><td class="td-code">060000005</td><td><span class="badge badge-amber">0</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">6</td><td>Ciutac</td><td>Adriana</td><td style="color:var(--accent2)">ciutac@mail.com</td><td class="td-code">060000006</td><td><span class="badge badge-green">2</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">7</td><td>Cirlan</td><td>Ion</td><td style="color:var(--accent2)">cirlan@mail.com</td><td class="td-code">060000007</td><td><span class="badge badge-blue">1</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">8</td><td>Munteanu</td><td>Alexandrina</td><td style="color:var(--accent2)">munteanu@mail.com</td><td class="td-code">060000020</td><td><span class="badge badge-green">4</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-pasager')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pagination">
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">›</button>
+        <div class="page-info">50 înregistrări · Pagina 1 din 7</div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         REZERVARI
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-rezervari">
+      <div class="screen-header">
+        <div class="screen-title">📋 Rezervări</div>
+        <div class="screen-sub">Managementul rezervărilor de bilete</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openModal('modal-rezervare')">➕ Rezervare nouă</button>
+        <button class="btn btn-secondary">🔄 Actualizare</button>
+        <div class="toolbar-spacer"></div>
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" placeholder="Caută cod rezervare...">
+        </div>
+        <select class="filter-select">
+          <option>Toate</option>
+          <option>Confirmate</option>
+          <option>Anulate</option>
+          <option>Astăzi</option>
+        </select>
+      </div>
+      <div class="table-area">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Cod Rezervare</th><th>Data Rezervare</th><th>Pasager</th><th>Zbor</th><th>Loc</th><th>Preț (MDL)</th><th>Status Bilet</th><th>Plată</th><th>Acțiuni</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="td-id">1</td><td class="td-code">RES1001</td><td>08.05.2026</td><td>Achirus Constantin</td><td class="td-code">MD101</td><td>5A</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">189.00</td><td><span class="badge badge-green">Confirmat</span></td><td><span class="badge badge-green">Plătit</span></td><td><div class="td-actions"><button class="action-btn">👁</button><button class="action-btn" onclick="openModal('modal-rezervare')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">2</td><td class="td-code">RES1002</td><td>08.05.2026</td><td>Batitchi Nicolae</td><td class="td-code">MD103</td><td>7B</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">245.00</td><td><span class="badge badge-green">Confirmat</span></td><td><span class="badge badge-green">Plătit</span></td><td><div class="td-actions"><button class="action-btn">👁</button><button class="action-btn" onclick="openModal('modal-rezervare')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">3</td><td class="td-code">RES1003</td><td>07.05.2026</td><td>Besliu Dan</td><td class="td-code">MD105</td><td>12C</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">110.00</td><td><span class="badge badge-red">Anulat</span></td><td><span class="badge badge-red">Refuzat</span></td><td><div class="td-actions"><button class="action-btn">👁</button><button class="action-btn" onclick="openModal('modal-rezervare')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">4</td><td class="td-code">RES1004</td><td>07.05.2026</td><td>Munteanu Alexandrina</td><td class="td-code">MD102</td><td>3A</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">320.00</td><td><span class="badge badge-green">Confirmat</span></td><td><span class="badge badge-green">Plătit</span></td><td><div class="td-actions"><button class="action-btn">👁</button><button class="action-btn" onclick="openModal('modal-rezervare')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">5</td><td class="td-code">RES1005</td><td>06.05.2026</td><td>Cirlan Ion</td><td class="td-code">MD104</td><td>9B</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">167.00</td><td><span class="badge badge-green">Confirmat</span></td><td><span class="badge badge-blue">Cash</span></td><td><div class="td-actions"><button class="action-btn">👁</button><button class="action-btn" onclick="openModal('modal-rezervare')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pagination">
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">›</button>
+        <div class="page-info">50 înregistrări · Pagina 1 din 7</div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         BILETE
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-bilete">
+      <div class="screen-header">
+        <div class="screen-title">🎫 Bilete</div>
+        <div class="screen-sub">Vizualizare și gestionare bilete de avion</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openModal('modal-bilet')">➕ Bilet nou</button>
+        <button class="btn btn-secondary">🔄 Actualizare</button>
+        <button class="btn btn-info">📤 Export CSV</button>
+        <div class="toolbar-spacer"></div>
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" placeholder="Caută bilet, pasager, zbor...">
+        </div>
+        <select class="filter-select">
+          <option>Toate clasele</option>
+          <option>Economy</option>
+          <option>Business</option>
+        </select>
+        <select class="filter-select">
+          <option>Toate statusurile</option>
+          <option>Confirmat</option>
+          <option>Anulat</option>
+        </select>
+      </div>
+      <div class="table-area">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Rezervare</th><th>Pasager</th><th>Zbor</th><th>Loc</th><th>Clasă</th><th>Preț</th><th>Status</th><th>Acțiuni</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="td-id">1</td><td class="td-code">RES1001</td><td>Achirus Constantin</td><td class="td-code">MD101</td><td>5A</td><td><span class="badge badge-blue">Economy</span></td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">189 MDL</td><td><span class="badge badge-green"><span class="badge-dot"></span>Confirmat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-bilet')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">2</td><td class="td-code">RES1002</td><td>Batitchi Nicolae</td><td class="td-code">MD103</td><td>7B</td><td><span class="badge badge-amber">Business</span></td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">245 MDL</td><td><span class="badge badge-green"><span class="badge-dot"></span>Confirmat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-bilet')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">3</td><td class="td-code">RES1003</td><td>Besliu Dan</td><td class="td-code">MD105</td><td>12C</td><td><span class="badge badge-blue">Economy</span></td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">110 MDL</td><td><span class="badge badge-red"><span class="badge-dot"></span>Anulat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-bilet')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">4</td><td class="td-code">RES1004</td><td>Munteanu Alexandrina</td><td class="td-code">MD102</td><td>3A</td><td><span class="badge badge-amber">Business</span></td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">320 MDL</td><td><span class="badge badge-green"><span class="badge-dot"></span>Confirmat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-bilet')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">5</td><td class="td-code">RES1005</td><td>Cirlan Ion</td><td class="td-code">MD104</td><td>9B</td><td><span class="badge badge-blue">Economy</span></td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">167 MDL</td><td><span class="badge badge-green"><span class="badge-dot"></span>Confirmat</span></td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-bilet')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pagination">
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">›</button>
+        <div class="page-info">50 înregistrări · Pagina 1 din 7</div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         PLATI
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-plati">
+      <div class="screen-header">
+        <div class="screen-title">💳 Plăți</div>
+        <div class="screen-sub">Evidența plăților și tranzacțiilor</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-secondary">🔄 Actualizare</button>
+        <div class="toolbar-spacer"></div>
+        <div class="search-box"><span>🔍</span><input type="text" placeholder="Caută rezervare..."></div>
+        <select class="filter-select"><option>Toate</option><option>Card</option><option>Cash</option></select>
+        <select class="filter-select"><option>Toate</option><option>Platit</option><option>Refuzat</option></select>
+      </div>
+      <div class="table-area">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Rezervare</th><th>Suma (MDL)</th><th>Metodă</th><th>Status</th><th>Data Plată</th></tr></thead>
+            <tbody>
+              <tr><td class="td-id">1</td><td class="td-code">RES1001</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent3)">189.00</td><td><span class="badge badge-blue">💳 Card</span></td><td><span class="badge badge-green">Plătit</span></td><td>08.05.2026 14:22</td></tr>
+              <tr><td class="td-id">2</td><td class="td-code">RES1002</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent3)">245.00</td><td><span class="badge badge-amber">💵 Cash</span></td><td><span class="badge badge-green">Plătit</span></td><td>08.05.2026 15:10</td></tr>
+              <tr><td class="td-id">3</td><td class="td-code">RES1003</td><td style="font-family:'JetBrains Mono',monospace;color:var(--danger)">110.00</td><td><span class="badge badge-blue">💳 Card</span></td><td><span class="badge badge-red">Refuzat</span></td><td>07.05.2026 09:43</td></tr>
+              <tr><td class="td-id">4</td><td class="td-code">RES1004</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent3)">320.00</td><td><span class="badge badge-amber">💵 Cash</span></td><td><span class="badge badge-green">Plătit</span></td><td>07.05.2026 16:05</td></tr>
+              <tr><td class="td-id">5</td><td class="td-code">RES1005</td><td style="font-family:'JetBrains Mono',monospace;color:var(--accent3)">167.00</td><td><span class="badge badge-blue">💳 Card</span></td><td><span class="badge badge-green">Plătit</span></td><td>06.05.2026 11:30</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         AEROPORTURI
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-aeroporturi">
+      <div class="screen-header">
+        <div class="screen-title">🏙 Aeroporturi</div>
+        <div class="screen-sub">Lista tuturor aeroporturilor din sistem</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="openModal('modal-aeroport')">➕ Aeroport nou</button>
+        <div class="toolbar-spacer"></div>
+        <div class="search-box"><span>🔍</span><input type="text" placeholder="Caută după nume, cod IATA, țară..."></div>
+        <select class="filter-select"><option>Toate țările</option><option>Moldova</option><option>România</option><option>Italia</option><option>UK</option></select>
+      </div>
+      <div class="table-area">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Cod IATA</th><th>Nume Aeroport</th><th>Oraș</th><th>Țară</th><th>Acțiuni</th></tr></thead>
+            <tbody>
+              <tr><td class="td-id">1</td><td class="td-code">KIV</td><td>Aeroportul Internațional Chișinău</td><td>Chișinău</td><td>🇲🇩 Moldova</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">2</td><td class="td-code">MRV</td><td>Aeroportul Internațional Mărculești</td><td>Mărculești</td><td>🇲🇩 Moldova</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">4</td><td class="td-code">IAS</td><td>Aeroportul Internațional Iași</td><td>Iași</td><td>🇷🇴 România</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">5</td><td class="td-code">OTP</td><td>Aeroportul Henri Coandă</td><td>București</td><td>🇷🇴 România</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">12</td><td class="td-code">IST</td><td>Aeroportul Istanbul</td><td>Istanbul</td><td>🇹🇷 Turcia</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">15</td><td class="td-code">LTN</td><td>Aeroportul Luton</td><td>Londra</td><td>🇬🇧 UK</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">19</td><td class="td-code">BGY</td><td>Aeroportul Bergamo</td><td>Milano</td><td>🇮🇹 Italia</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">28</td><td class="td-code">CDG</td><td>Aeroportul Charles de Gaulle</td><td>Paris</td><td>🇫🇷 Franța</td><td><div class="td-actions"><button class="action-btn" onclick="openModal('modal-aeroport')">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         AVIOANE
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-avioane">
+      <div class="screen-header">
+        <div class="screen-title">🛩 Avioane</div>
+        <div class="screen-sub">Flota de avioane înregistrată în sistem</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-primary">➕ Avion nou</button>
+        <div class="toolbar-spacer"></div>
+        <div class="search-box"><span>🔍</span><input type="text" placeholder="Caută model avion..."></div>
+        <select class="filter-select"><option>Toate</option><option>Airbus</option><option>Boeing</option><option>ATR</option><option>Embraer</option></select>
+      </div>
+      <div class="table-area">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Model</th><th>Capacitate</th><th>Locuri Disponibile</th><th>Acțiuni</th></tr></thead>
+            <tbody>
+              <tr><td class="td-id">1</td><td>Airbus A320</td><td>180 pasageri</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:65%;height:100%;background:var(--accent3);border-radius:3px"></div></div>63 libere</div></td><td><div class="td-actions"><button class="action-btn">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">2</td><td>Boeing 737</td><td>160 pasageri</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:90%;height:100%;background:var(--danger);border-radius:3px"></div></div>16 libere</div></td><td><div class="td-actions"><button class="action-btn">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">3</td><td>Airbus A321</td><td>220 pasageri</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:40%;height:100%;background:var(--accent3);border-radius:3px"></div></div>132 libere</div></td><td><div class="td-actions"><button class="action-btn">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">4</td><td>ATR 72</td><td>70 pasageri</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:75%;height:100%;background:var(--accent);border-radius:3px"></div></div>17 libere</div></td><td><div class="td-actions"><button class="action-btn">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+              <tr><td class="td-id">5</td><td>Embraer E190</td><td>100 pasageri</td><td><div style="display:flex;align-items:center;gap:8px"><div style="width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:50%;height:100%;background:var(--accent3);border-radius:3px"></div></div>50 libere</div></td><td><div class="td-actions"><button class="action-btn">✏️</button><button class="action-btn del" onclick="openConfirm()">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         RAPOARTE
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-rapoarte">
+      <div class="screen-header">
+        <div class="screen-title">📈 Rapoarte</div>
+        <div class="screen-sub">Generare rapoarte statistice și analitice</div>
+      </div>
+      <div class="reports-body">
+        <div class="reports-grid">
+          <div class="report-card" onclick="showReport(1)">
+            <div class="report-icon">✈️</div>
+            <div class="report-name">Raport Zboruri</div>
+            <div class="report-desc">Lista tuturor zborurilor cu număr de bilete vândute, locuri libere și venituri generate.</div>
+            <div class="report-tag">zbor · pasageri · venit</div>
+          </div>
+          <div class="report-card" onclick="showReport(2)">
+            <div class="report-icon">👥</div>
+            <div class="report-name">Raport Pasageri</div>
+            <div class="report-desc">Statistici despre pasageri: număr rezervări, total cheltuieli, frecvență zboruri.</div>
+            <div class="report-tag">pasager · rezervare · total</div>
+          </div>
+          <div class="report-card" onclick="showReport(3)">
+            <div class="report-icon">💰</div>
+            <div class="report-name">Raport Financiar</div>
+            <div class="report-desc">Analiza veniturilor pe perioadă, metodă de plată și zbor. Total încasări vs. anulări.</div>
+            <div class="report-tag">venituri · plăți · perioadă</div>
+          </div>
+          <div class="report-card" onclick="showReport(4)">
+            <div class="report-icon">🗺️</div>
+            <div class="report-name">Raport Destinații</div>
+            <div class="report-desc">Cele mai populare destinații, număr de zboruri și grad de umplere pe rute.</div>
+            <div class="report-tag">destinație · rută · popularitate</div>
+          </div>
+          <div class="report-card" onclick="showReport(5)">
+            <div class="report-icon">📅</div>
+            <div class="report-name">Raport Rezervări Lunare</div>
+            <div class="report-desc">Evoluția rezervărilor pe luni, comparație an curent vs. precedent.</div>
+            <div class="report-tag">lună · trend · comparație</div>
+          </div>
+          <div class="report-card" onclick="showReport(6)">
+            <div class="report-icon">🛩️</div>
+            <div class="report-name">Raport Flotă</div>
+            <div class="report-desc">Utilizarea avioanelor: număr zboruri pe avion, grad de ocupare, venituri per avion.</div>
+            <div class="report-tag">avion · utilizare · eficiență</div>
+          </div>
+        </div>
+
+        <!-- RAPORT RESULT (shown when a report is clicked) -->
+        <div class="report-result" id="report-result" style="display:none">
+          <div class="report-result-header">
+            <div class="report-result-title" id="report-result-title">📊 Raport Zboruri — 08.05.2026</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-info" onclick="showAlert('success','Exportat cu succes în raport_zboruri.csv')">📤 Export CSV</button>
+              <button class="btn btn-secondary" onclick="showAlert('success','Exportat cu succes în raport_zboruri.txt')">📄 Export TXT</button>
+              <button class="btn btn-secondary" onclick="document.getElementById('report-result').style.display='none'">✕ Închide</button>
+            </div>
+          </div>
+          <div style="overflow:auto">
+            <table id="report-table">
+              <thead>
+                <tr><th>Zbor</th><th>Rută</th><th>Data</th><th>Bilete</th><th>Locuri Libere</th><th>Venit (MDL)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="td-code">MD101</td><td>KIV → OTP</td><td>09.05.2026</td><td>42</td><td>138</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">4 200</td></tr>
+                <tr><td class="td-code">MD102</td><td>KIV → LTN</td><td>10.05.2026</td><td>38</td><td>122</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">9 500</td></tr>
+                <tr><td class="td-code">MD103</td><td>KIV → BGY</td><td>11.05.2026</td><td>55</td><td>125</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">7 150</td></tr>
+                <tr><td class="td-code">MD104</td><td>KIV → IST</td><td>12.05.2026</td><td>30</td><td>40</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">4 500</td></tr>
+                <tr><td class="td-code">MD105</td><td>KIV → FRA</td><td>13.05.2026</td><td>22</td><td>128</td><td style="color:var(--accent3);font-family:'JetBrains Mono',monospace">6 820</td></tr>
+                <tr style="background:rgba(245,158,11,0.06)"><td colspan="3" style="font-weight:700;font-family:'Syne',sans-serif">TOTAL</td><td style="font-weight:700">187</td><td style="font-weight:700">553</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700">32 170</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         EXPORT
+    ════════════════════════════════════ -->
+    <div class="screen" id="screen-export">
+      <div class="screen-header">
+        <div class="screen-title">📤 Export Date</div>
+        <div class="screen-sub">Exportați datele sistemului în format CSV sau TXT</div>
+      </div>
+      <div style="flex:1;overflow:auto;padding:24px;background:var(--bg)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px">
+          <!-- Export options -->
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:16px">⚙️ Configurare Export</div>
+            <div class="form-group" style="margin-bottom:12px">
+              <div class="form-label">Tabel de exportat</div>
+              <select class="form-select" style="width:100%">
+                <option>Bilete (cu detalii zbor și pasager)</option>
+                <option>Zboruri</option>
+                <option>Pasageri</option>
+                <option>Rezervări</option>
+                <option>Plăți</option>
+                <option>Toate tabelele</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+              <div class="form-label">Format fișier</div>
+              <div style="display:flex;gap:8px">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--card);border:1px solid var(--accent);padding:8px 14px;border-radius:7px;font-size:12.5px;flex:1;justify-content:center">
+                  <input type="radio" name="fmt" checked> 📊 CSV
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--card);border:1px solid var(--border);padding:8px 14px;border-radius:7px;font-size:12.5px;flex:1;justify-content:center">
+                  <input type="radio" name="fmt"> 📄 TXT
+                </label>
+              </div>
+            </div>
+            <div class="form-row" style="margin-bottom:12px">
+              <div class="form-group">
+                <div class="form-label">De la data</div>
+                <input type="date" class="form-input" value="2026-05-01">
+              </div>
+              <div class="form-group">
+                <div class="form-label">Până la data</div>
+                <input type="date" class="form-input" value="2026-05-08">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px">
+              <div class="form-label">Separator (CSV)</div>
+              <select class="form-select" style="width:100%">
+                <option>Virgulă (,)</option>
+                <option>Punct și virgulă (;)</option>
+                <option>Tab (\t)</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="showAlert('success','Fișier exportat: bilete_export_08052026.csv (50 rânduri)')">
+              📤 Exportă Acum
+            </button>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px">
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px">📂 Exporturi Recente</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
+                  <span style="font-size:20px">📊</span>
+                  <div style="flex:1">
+                    <div style="font-size:12.5px;font-weight:600">bilete_all_07052026.csv</div>
+                    <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">50 rânduri · 4.2 KB · 07.05.2026</div>
+                  </div>
+                  <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px">⬇</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
+                  <span style="font-size:20px">📄</span>
+                  <div style="flex:1">
+                    <div style="font-size:12.5px;font-weight:600">raport_zboruri_05052026.txt</div>
+                    <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">50 rânduri · 2.8 KB · 05.05.2026</div>
+                  </div>
+                  <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px">⬇</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card);border-radius:8px;border:1px solid var(--border)">
+                  <span style="font-size:20px">📊</span>
+                  <div style="flex:1">
+                    <div style="font-size:12.5px;font-weight:600">pasageri_03052026.csv</div>
+                    <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">50 rânduri · 3.1 KB · 03.05.2026</div>
+                  </div>
+                  <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px">⬇</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px">
+              <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:12px">👁 Previzualizare CSV</div>
+              <pre style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);background:var(--card);border:1px solid var(--border);padding:12px;border-radius:8px;overflow:auto;max-height:130px;white-space:pre">IdBilet,CodRezervare,Pasager,Zbor,Loc,Pret,Status
+1,RES1001,Achirus Constantin,MD101,5A,189.00,Confirmat
+2,RES1002,Batitchi Nicolae,MD103,7B,245.00,Confirmat
+3,RES1003,Besliu Dan,MD105,12C,110.00,Anulat
+4,RES1004,Munteanu Alexandrina,MD102,3A,320.00,Confirmat
+5,RES1005,Cirlan Ion,MD104,9B,167.00,Confirmat</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+
+<!-- ══════════════════════════════════════
+     MODALS
+══════════════════════════════════════ -->
+
+<!-- MODAL: ZBOR NOU / EDITARE -->
+<div class="modal-overlay" id="modal-zbor">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✈️ Adăugare Zbor Nou</div>
+      <button class="modal-close" onclick="closeModal('modal-zbor')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Număr Zbor *</div>
+          <input class="form-input" type="text" placeholder="ex: MD101">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Avion *</div>
+          <select class="form-select">
+            <option>— Selectează avion —</option>
+            <option>Airbus A320 (180 loc.)</option>
+            <option>Boeing 737 (160 loc.)</option>
+            <option>ATR 72 (70 loc.)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Aeroport Plecare *</div>
+          <select class="form-select">
+            <option>KIV — Chișinău</option>
+            <option>MRV — Mărculești</option>
+            <option>OTP — București</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Aeroport Sosire *</div>
+          <select class="form-select">
+            <option>— Selectează destinație —</option>
+            <option>OTP — București</option>
+            <option>LTN — Londra</option>
+            <option>BGY — Milano</option>
+            <option>IST — Istanbul</option>
+            <option>FRA — Frankfurt</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Data și Ora Plecării *</div>
+          <input class="form-input" type="datetime-local" value="2026-05-09T08:00">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Data și Ora Sosirii *</div>
+          <input class="form-input" type="datetime-local" value="2026-05-09T10:00">
+        </div>
+      </div>
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted2)">
+        ⚠️ Ora sosirii trebuie să fie după ora plecării. Locurile se alocă automat.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-zbor')">Anulează</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-zbor');showAlert('success','Zborul MD151 a fost adăugat cu succes!')">💾 Salvează Zborul</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PASAGER NOU / EDITARE -->
+<div class="modal-overlay" id="modal-pasager">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 Adăugare Pasager</div>
+      <button class="modal-close" onclick="closeModal('modal-pasager')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Nume *</div>
+          <input class="form-input" type="text" placeholder="ex: Popescu">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Prenume *</div>
+          <input class="form-input" type="text" placeholder="ex: Ion">
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <div class="form-label">Email *</div>
+          <input class="form-input" id="email-input" type="email" placeholder="ex: ion.popescu@mail.com">
+          <div class="form-error" id="email-error" style="display:none">⚠ Formatul emailului este incorect!</div>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <div class="form-label">Telefon *</div>
+          <input class="form-input" type="tel" placeholder="ex: 060123456">
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">Format: 9 cifre, începând cu 06x</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-pasager')">Anulează</button>
+      <button class="btn btn-primary" onclick="validateAndSavePasager()">💾 Salvează</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: REZERVARE NOUA -->
+<div class="modal-overlay" id="modal-rezervare">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📋 Rezervare Nouă</div>
+      <button class="modal-close" onclick="closeModal('modal-rezervare')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Cod Rezervare</div>
+          <input class="form-input" type="text" value="RES1051" readonly style="opacity:0.6">
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">Generat automat</div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Data Rezervare</div>
+          <input class="form-input" type="date" value="2026-05-08" readonly style="opacity:0.6">
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <div class="form-label">Pasager *</div>
+          <select class="form-select">
+            <option>— Selectează pasager —</option>
+            <option>Achirus Constantin</option>
+            <option>Batitchi Nicolae</option>
+            <option>Besliu Dan</option>
+            <option>Munteanu Alexandrina</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Zbor *</div>
+          <select class="form-select">
+            <option>— Selectează zbor —</option>
+            <option>MD101 — KIV→OTP (09.05)</option>
+            <option>MD102 — KIV→LTN (10.05)</option>
+            <option>MD103 — KIV→BGY (11.05)</option>
+            <option>MD104 — KIV→IST (12.05)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Loc *</div>
+          <select class="form-select">
+            <option>— Selectează loc —</option>
+            <option>1A — Economy (liber)</option>
+            <option>2B — Business (liber)</option>
+            <option>5A — Economy (liber)</option>
+            <option>7B — Business (liber)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Preț (MDL) *</div>
+          <input class="form-input" type="number" placeholder="ex: 250" min="0">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Metodă plată</div>
+          <select class="form-select">
+            <option>Card</option>
+            <option>Cash</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rezervare')">Anulează</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-rezervare');showAlert('success','Rezervarea RES1051 a fost creată cu succes!')">💾 Confirmă Rezervarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BILET NOU -->
+<div class="modal-overlay" id="modal-bilet">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎫 Bilet Nou</div>
+      <button class="modal-close" onclick="closeModal('modal-bilet')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row single">
+        <div class="form-group">
+          <div class="form-label">Rezervare *</div>
+          <select class="form-select">
+            <option>— Selectează rezervare —</option>
+            <option>RES1001 — Achirus Constantin</option>
+            <option>RES1002 — Batitchi Nicolae</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Zbor *</div>
+          <select class="form-select">
+            <option>— Selectează zbor —</option>
+            <option>MD101 — KIV→OTP</option>
+            <option>MD102 — KIV→LTN</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Loc *</div>
+          <select class="form-select">
+            <option>— Selectează loc —</option>
+            <option>3C — Economy</option>
+            <option>8B — Business</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Preț (MDL) *</div>
+          <input class="form-input" type="number" placeholder="ex: 200" min="1">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Status</div>
+          <select class="form-select">
+            <option>Confirmat</option>
+            <option>Anulat</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-bilet')">Anulează</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-bilet');showAlert('success','Biletul a fost emis cu succes!')">🎫 Emite Biletul</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: AEROPORT -->
+<div class="modal-overlay" id="modal-aeroport">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏙 Aeroport Nou</div>
+      <button class="modal-close" onclick="closeModal('modal-aeroport')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row single">
+        <div class="form-group">
+          <div class="form-label">Nume Aeroport *</div>
+          <input class="form-input" type="text" placeholder="ex: Aeroportul Internațional Chișinău">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Cod IATA *</div>
+          <input class="form-input" type="text" placeholder="ex: KIV" maxlength="3" style="text-transform:uppercase">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Oraș *</div>
+          <input class="form-input" type="text" placeholder="ex: Chișinău">
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <div class="form-label">Țara *</div>
+          <input class="form-input" type="text" placeholder="ex: Moldova">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-aeroport')">Anulează</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-aeroport');showAlert('success','Aeroportul a fost adăugat!')">💾 Salvează</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="confirm-dialog">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-title">Confirmare Ștergere</div>
+    <div class="confirm-desc">Sigur doriți să ștergeți această înregistrare? Acțiunea este ireversibilă și poate afecta date corelate.</div>
+    <div class="confirm-btns">
+      <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">Anulează</button>
+      <button class="btn btn-danger" onclick="closeModal('modal-confirm');showAlert('error','Înregistrarea a fost ștearsă.')">🗑 Șterge</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALERT NOTIFICATION -->
+<div class="alert-box" id="alert-box">
+  <div class="alert-icon" id="alert-icon">✅</div>
+  <div class="alert-msg" id="alert-msg">Operație reușită!</div>
+</div>
+
+<script>
+  // Navigation
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    event && event.currentTarget && event.currentTarget.classList.add('active');
+    // find nav item
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+name+"'")) {
+        n.classList.add('active');
+      }
+    });
+  }
+
+  // Modal
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+  function openConfirm() { openModal('modal-confirm'); }
+
+  // Close modal on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if(e.target === this) this.classList.remove('open');
+    });
+  });
+
+  // Alert
+  let alertTimeout;
+  function showAlert(type, msg) {
+    const box = document.getElementById('alert-box');
+    const icon = document.getElementById('alert-icon');
+    const msgEl = document.getElementById('alert-msg');
+    box.className = 'alert-box show ' + (type === 'success' ? 'success' : 'error-alert');
+    icon.textContent = type === 'success' ? '✅' : '❌';
+    msgEl.textContent = msg;
+    clearTimeout(alertTimeout);
+    alertTimeout = setTimeout(() => box.classList.remove('show'), 3500);
+  }
+
+  // Reports
+  const reportTitles = {
+    1: '✈️ Raport Zboruri',
+    2: '👥 Raport Pasageri',
+    3: '💰 Raport Financiar',
+    4: '🗺️ Raport Destinații',
+    5: '📅 Raport Rezervări Lunare',
+    6: '🛩️ Raport Flotă'
+  };
+  function showReport(n) {
+    document.getElementById('report-result').style.display = 'block';
+    document.getElementById('report-result-title').textContent = reportTitles[n] + ' — 08.05.2026';
+    document.getElementById('report-result').scrollIntoView({behavior:'smooth'});
+  }
+
+  // Simple email validation for pasager modal
+  function validateAndSavePasager() {
+    const email = document.getElementById('email-input').value;
+    const err = document.getElementById('email-error');
+    const input = document.getElementById('email-input');
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(email && !re.test(email)) {
+      input.classList.add('error');
+      err.style.display = 'block';
+      return;
+    }
+    input.classList.remove('error');
+    err.style.display = 'none';
+    closeModal('modal-pasager');
+    showAlert('success', 'Pasagerul a fost salvat cu succes!');
+  }
+</script>
+
+</body>
+</html>

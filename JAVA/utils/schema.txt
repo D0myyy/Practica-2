@@ -1,0 +1,79 @@
+src/
+│
+├── app/
+│   └── Main.java
+│
+├── controller/
+│   ├── MainController.java
+│   ├── PasagerController.java
+│   ├── ZborController.java
+│   ├── BiletController.java
+│   ├── RezervareController.java
+│   ├── PlataController.java
+│   └── RaportController.java
+│
+├── dao/
+│   ├── PasagerDAO.java
+│   ├── ZborDAO.java
+│   ├── BiletDAO.java
+│   ├── RezervareDAO.java
+│   ├── PlataDAO.java
+│   ├── AeroportDAO.java
+│   ├── AvionDAO.java
+│   └── LocDAO.java
+│
+├── database/
+│   ├── DatabaseConnection.java
+│   └── DatabaseInitializer.java
+│
+├── model/
+│   ├── Persoana.java
+│   ├── Pasager.java
+│   ├── Aeroport.java
+│   ├── Avion.java
+│   ├── Loc.java
+│   ├── Zbor.java
+│   ├── Rezervare.java
+│   ├── Bilet.java
+│   ├── Plata.java
+│   │
+│   ├── enums/
+│   │   ├── StatusBilet.java
+│   │   ├── MetodaPlata.java
+│   │   ├── StatusPlata.java
+│   │   └── ClasaLoc.java
+│   │
+│   └── interfaces/
+│       └── Exportable.java
+│
+├── service/
+│   ├── ExportCSVService.java
+│   ├── ExportTXTService.java
+│   ├── ReportService.java
+│   ├── ValidationService.java
+│   └── SearchService.java
+│
+├── ui/
+│   ├── css/
+│   │   └── style.css
+│   │
+│   ├── fxml/
+│   │   ├── MainMenu.fxml
+│   │   ├── Pasageri.fxml
+│   │   ├── Zboruri.fxml
+│   │   ├── Bilete.fxml
+│   │   ├── Rezervari.fxml
+│   │   ├── Plati.fxml
+│   │   └── Rapoarte.fxml
+│   │
+│   └── images/
+│       ├── airplane.png
+│       ├── airport.png
+│       └── logo.png
+│
+└── utils/
+    ├── AlertHelper.java
+    ├── CSVExporter.java
+    ├── TXTExporter.java
+    ├── DateUtils.java
+    └── Validator.java

@@ -2,7 +2,7 @@
 
 ## Build and run
 ```bash
-javac -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main.java && java -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main
+javac -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar" Main.java && java -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar" Main
 ```
 
 ### Compile the program
