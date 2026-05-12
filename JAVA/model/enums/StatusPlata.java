@@ -1,5 +1,5 @@
 package model.enums;
 
 public enum StatusPlata {
-    FINALIZATA, PENDINTA, ESEC
+    PLATIT, REFUZAT, IN_ASTEPTARE
 }
