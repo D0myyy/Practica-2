@@ -121,4 +121,12 @@ public class BiletDAO {
 				StatusBilet.valueOf(resultSet.getString("Status").trim().toUpperCase()));
 		return bilet;
 	}
+
+	private String toDbValue(StatusBilet statusBilet) {
+		return switch (statusBilet) {
+			case CONFIRMAT -> "Confirmat";
+			case ANULAT -> "Anulat";
+			case IN_ASTEPTARE -> "In asteptare";
+		};
+	}
 }
