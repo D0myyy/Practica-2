@@ -2,17 +2,19 @@
 
 ## Build and run
 ```bash
-javac -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar" Main.java && java -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar" Main
+javac -cp ".;..\utils\mssql-jdbc-13.4.0.jre11.jar" Main.java && java -cp ".;..\utils\mssql-jdbc-13.4.0.jre11.jar" Main
 ```
 
 ### Compile the program
 ```bash
-javac -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main.java
+cd JAVA
+javac -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar" app\Main.java
 ```
 
 ### Run the program
 ```bash
-java -cp ".;mssql-jdbc-13.4.0.jre11.jar" Main
+cd JAVA
+java -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar;app" Main
 ```
 
 # Steps to make SSMS work properly

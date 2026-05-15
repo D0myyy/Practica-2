@@ -1,14 +1,11 @@
 import java.sql.*;
 
-import database.DatabaseInitializer;
-import dao.PasagerDAO;
-import model.Pasager;
-
 public class Main {
+
     public static void main(String[] args) {
 
         String url =
-            "jdbc:sqlserver://localhost;" +
+            "jdbc:sqlserver://localhost:1433;" +
             "databaseName=Rezervare_bilete_avion;" +
             "integratedSecurity=true;" +
             "encrypt=true;" +
@@ -16,14 +13,16 @@ public class Main {
 
         try {
 
-            Connection con = DriverManager.getConnection(url);
+            Connection con =
+                DriverManager.getConnection(url);
 
             System.out.println("Conectat!");
-
+            
             // SELECT
             Statement st = con.createStatement();
 
-            ResultSet rs = st.executeQuery("SELECT * FROM dbo.Pasageri");
+            ResultSet rs =
+                st.executeQuery("SELECT * FROM dbo.Pasageri");
 
             boolean found = false;
 
@@ -38,14 +37,6 @@ public class Main {
 
             if (!found) {
                 System.out.println("No rows found in Pasageri!");
-                DatabaseInitializer.initialize();
-                PasagerDAO pasagerDAO = new PasagerDAO();
-                System.out.println("Conectat la baza de date.");
-                System.out.println("Pasageri gasiti: " + pasagerDAO.findAll().size());
-                Pasager first = pasagerDAO.findAll().stream().findFirst().orElse(null);
-                if (first != null) {
-                    System.out.println(first.getDescrierePersoana());
-                }
             }
 
             // INSERT
@@ -66,8 +57,8 @@ public class Main {
 
             con.close();
 
-        } catch (Exception exception) {
-            exception.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
