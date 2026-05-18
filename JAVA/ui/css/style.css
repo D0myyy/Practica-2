@@ -1,4 +1,439 @@
-/* Basic stylesheet placeholder */
-root {
+.root,
+.app-bg {
+    -fx-background-color: #0b1017;
     -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-text-fill: #f8fafc;
+}
+
+.label {
+    -fx-text-fill: #f8fafc;
+}
+
+.topbar {
+    -fx-background-color: #111827;
+    -fx-border-color: #253047;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 18;
+    -fx-pref-height: 50;
+}
+
+.topbar-logo {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 17px;
+    -fx-font-weight: 900;
+}
+
+.topbar-subtitle,
+.mono-muted,
+.screen-subtitle,
+.footer-text,
+.db-sub {
+    -fx-text-fill: #6f86a8;
+    -fx-font-size: 11px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+}
+
+.db-online {
+    -fx-text-fill: #10b981;
+    -fx-font-size: 11px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+}
+
+.db-error {
+    -fx-text-fill: #ef4444;
+    -fx-font-size: 11px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+}
+
+.divider {
+    -fx-background-color: #253047;
+    -fx-pref-width: 1;
+    -fx-pref-height: 26;
+}
+
+.sidebar {
+    -fx-background-color: #111827;
+    -fx-border-color: #253047;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 16 10;
+    -fx-pref-width: 220;
+}
+
+.nav-section {
+    -fx-text-fill: #6f86a8;
+    -fx-font-size: 10px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+    -fx-font-weight: 700;
+    -fx-letter-spacing: 2px;
+    -fx-padding: 11 0 4 0;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #bdd2ee;
+    -fx-font-size: 13px;
+    -fx-padding: 10 12;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: #1c2535;
+    -fx-text-fill: #ffffff;
+}
+
+.active-nav {
+    -fx-background-color: #2a251e;
+    -fx-text-fill: #f59e0b;
+    -fx-font-weight: 800;
+}
+
+.db-card {
+    -fx-background-color: #1c2535;
+    -fx-border-color: #253047;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+}
+
+.db-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+.screen {
+    -fx-background-color: #0b1017;
+}
+
+.screen-header {
+    -fx-background-color: #161d2a;
+    -fx-border-color: #253047;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 18 24 14 24;
+}
+
+.screen-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 21px;
+    -fx-font-weight: 900;
+}
+
+.toolbar {
+    -fx-background-color: #161d2a;
+    -fx-border-color: #253047;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 24;
+}
+
+.body {
+    -fx-background-color: #0b1017;
+    -fx-padding: 16 24;
+}
+
+.footer {
+    -fx-background-color: #161d2a;
+    -fx-border-color: #253047;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 10 24;
+}
+
+.page-button,
+.page-button-active {
+    -fx-min-width: 30;
+    -fx-min-height: 30;
+    -fx-background-radius: 7;
+    -fx-border-radius: 7;
+    -fx-font-weight: 800;
+}
+
+.page-button {
+    -fx-background-color: #1c2535;
+    -fx-border-color: #253047;
+    -fx-text-fill: #e2e8f0;
+}
+
+.page-button-active {
+    -fx-background-color: #f59e0b;
+    -fx-text-fill: #111827;
+}
+
+.action-button {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 800;
+    -fx-padding: 8 14;
+    -fx-background-radius: 7;
+    -fx-border-radius: 7;
+    -fx-cursor: hand;
+}
+
+.input {
+    -fx-background-color: #1c2535;
+    -fx-text-fill: #ffffff;
+    -fx-prompt-text-fill: #6f86a8;
+    -fx-border-color: #253047;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-padding: 8 10;
+}
+
+.text-input {
+    -fx-text-fill: #ffffff;
+    -fx-highlight-fill: #334155;
+    -fx-highlight-text-fill: #ffffff;
+}
+
+.combo-box .list-cell,
+.combo-box-popup .list-view,
+.combo-box-popup .list-cell,
+.date-picker .text-field,
+.date-picker-popup,
+.date-picker-popup .month-year-pane,
+.date-picker-popup .calendar-grid,
+.date-picker-popup .day-cell,
+.date-picker-popup .week-number-cell {
+    -fx-background-color: #1c2535;
+    -fx-text-fill: #ffffff;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:selected,
+.date-picker-popup .day-cell:hover,
+.date-picker-popup .day-cell:selected {
+    -fx-background-color: #334155;
+    -fx-text-fill: #ffffff;
+}
+
+.date-picker .arrow-button,
+.combo-box .arrow-button {
+    -fx-background-color: #253047;
+}
+
+.date-picker .arrow,
+.combo-box .arrow {
+    -fx-background-color: #e2e8f0;
+}
+
+.air-table,
+.table-view {
+    -fx-background-color: #161d2a;
+    -fx-border-color: #253047;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-table-cell-border-color: #253047;
+}
+
+.table-view .column-header-background,
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: #1c2535;
+    -fx-border-color: #253047;
+}
+
+.table-view .label {
+    -fx-text-fill: #6f86a8;
+    -fx-font-weight: 800;
+    -fx-font-size: 11px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+}
+
+.table-row-cell {
+    -fx-background-color: #161d2a;
+    -fx-cell-size: 48;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #151c29;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #243247;
+}
+
+.table-cell {
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #253047;
+    -fx-font-size: 13px;
+}
+
+.panel,
+.stat-card,
+.report-card,
+.report-result,
+.export-card {
+    -fx-background-color: #161d2a;
+    -fx-border-color: #253047;
+    -fx-border-width: 1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 16;
+}
+
+.panel-title,
+.report-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: 900;
+}
+
+.stat-icon {
+    -fx-font-size: 24px;
+}
+
+.stat-value {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 30px;
+    -fx-font-weight: 900;
+    -fx-font-style: italic;
+}
+
+.stat-label,
+.muted,
+.report-desc {
+    -fx-text-fill: #a9c4e8;
+    -fx-font-size: 12px;
+}
+
+.stat-change {
+    -fx-text-fill: #10b981;
+    -fx-font-size: 11px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+}
+
+.flight-row {
+    -fx-border-color: #253047;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 0;
+}
+
+.code {
+    -fx-text-fill: #2480ff;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+    -fx-font-weight: 800;
+}
+
+.route {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
+.badge {
+    -fx-background-radius: 18;
+    -fx-padding: 4 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: 900;
+}
+
+.bar-chart {
+    -fx-padding: 8 0 16 0;
+    -fx-min-height: 120;
+}
+
+.bar,
+.bar-highlight {
+    -fx-background-radius: 5 5 0 0;
+}
+
+.bar {
+    -fx-background-color: #d08a0c;
+}
+
+.bar-highlight {
+    -fx-background-color: #f59e0b;
+}
+
+.bar-val {
+    -fx-text-fill: #f59e0b;
+    -fx-font-size: 10px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+    -fx-font-weight: 900;
+}
+
+.mini-stat {
+    -fx-border-color: #253047;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 0;
+}
+
+.mini-value {
+    -fx-font-size: 13px;
+    -fx-font-weight: 900;
+}
+
+.report-card {
+    -fx-min-height: 150;
+    -fx-cursor: hand;
+}
+
+.report-card:hover {
+    -fx-border-color: #f59e0b;
+    -fx-background-color: #181f2c;
+}
+
+.report-icon {
+    -fx-font-size: 26px;
+}
+
+.report-card-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: 900;
+}
+
+.report-tag {
+    -fx-text-fill: #6f86a8;
+    -fx-background-color: #1c2535;
+    -fx-border-color: #253047;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 3 8;
+    -fx-font-size: 10px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+}
+
+.export-row {
+    -fx-background-color: #1c2535;
+    -fx-border-color: #253047;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+}
+
+.form-grid {
+    -fx-background-color: #161d2a;
+    -fx-padding: 16;
+}
+
+.form-label {
+    -fx-text-fill: #a9c4e8;
+    -fx-font-size: 11px;
+    -fx-font-weight: 900;
+}
+
+.dialog-pane,
+.dialog-dark,
+.dialog-pane .content,
+.dialog-pane .header-panel,
+.dialog-pane .header-panel .label {
+    -fx-background-color: #161d2a;
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: #ffffff;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #f59e0b;
+    -fx-text-fill: #111827;
+    -fx-font-weight: 900;
+}
+
+.report {
+    -fx-control-inner-background: #111827;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+    -fx-highlight-fill: #334155;
+    -fx-highlight-text-fill: #ffffff;
 }

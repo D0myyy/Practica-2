@@ -118,15 +118,20 @@ public class BiletDAO {
 				zbor,
 				loc,
 				resultSet.getDouble("Pret"),
-				StatusBilet.valueOf(resultSet.getString("Status").trim().toUpperCase()));
+				StatusBilet.valueOf(resultSet.getString("Status").trim().toUpperCase().replace(' ', '_')));
 		return bilet;
 	}
 
 	private String toDbValue(StatusBilet statusBilet) {
-		return switch (statusBilet) {
-			case CONFIRMAT -> "Confirmat";
-			case ANULAT -> "Anulat";
-			case IN_ASTEPTARE -> "In asteptare";
-		};
+		switch (statusBilet) {
+			case CONFIRMAT:
+				return "Confirmat";
+			case ANULAT:
+				return "Anulat";
+			case IN_ASTEPTARE:
+				return "In asteptare";
+			default:
+				return "Confirmat";
+		}
 	}
 }

@@ -1,20 +1,17 @@
 # Rezervare bilete avion (Zboruri, Pasageri, Bilete)
 
-## Build and run
-```bash
-javac -cp ".;..\utils\mssql-jdbc-13.4.0.jre11.jar" Main.java && java -cp ".;..\utils\mssql-jdbc-13.4.0.jre11.jar" Main
-```
+## Build and run JavaFX
 
 ### Compile the program
 ```bash
 cd JAVA
-javac -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar" app\Main.java
+javac --module-path "..\javafx-sdk-17.0.19\lib" --add-modules javafx.controls -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar" app\Main.java ui\AppUI.java dao\*.java database\*.java model\*.java model\enums\*.java model\interfaces\*.java
 ```
 
 ### Run the program
 ```bash
 cd JAVA
-java -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar;app" Main
+java --module-path "..\javafx-sdk-17.0.19\lib" --add-modules javafx.controls -cp ".;utils\mssql-jdbc-13.4.0.jre11.jar;app" Main
 ```
 
 # Steps to make SSMS work properly

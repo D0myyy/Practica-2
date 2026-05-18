@@ -12,8 +12,6 @@ import java.util.List;
 import model.Rezervare;
 
 public class RezervareDAO {
-	private final BiletDAO biletDAO = new BiletDAO();
-
 	public List<Rezervare> findAll() {
 		List<Rezervare> rezervari = new ArrayList<>();
 		String sql = "SELECT IdRezervare, CodRezervare, DataRezervare FROM Rezervari ORDER BY IdRezervare";

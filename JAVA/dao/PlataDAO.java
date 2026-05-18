@@ -107,24 +107,34 @@ public class PlataDAO {
 				rezervare,
 				resultSet.getDouble("Suma"),
 				MetodaPlata.valueOf(resultSet.getString("Metoda").trim().toUpperCase()),
-				StatusPlata.valueOf(resultSet.getString("Status").trim().toUpperCase()),
+				StatusPlata.valueOf(resultSet.getString("Status").trim().toUpperCase().replace(' ', '_')),
 				resultSet.getTimestamp("DataPlata").toLocalDateTime());
 		return plata;
 	}
 
 	private String toDbValue(MetodaPlata metodaPlata) {
-		return switch (metodaPlata) {
-			case CARD -> "Card";
-			case CASH -> "Cash";
-			case TRANSFER -> "Transfer";
-		};
+		switch (metodaPlata) {
+			case CARD:
+				return "Card";
+			case CASH:
+				return "Cash";
+			case TRANSFER:
+				return "Transfer";
+			default:
+				return "Card";
+		}
 	}
 
 	private String toDbValue(StatusPlata statusPlata) {
-		return switch (statusPlata) {
-			case PLATIT -> "Platit";
-			case REFUZAT -> "Refuzat";
-			case IN_ASTEPTARE -> "In asteptare";
-		};
+		switch (statusPlata) {
+			case PLATIT:
+				return "Platit";
+			case REFUZAT:
+				return "Refuzat";
+			case IN_ASTEPTARE:
+				return "In asteptare";
+			default:
+				return "In asteptare";
+		}
 	}
 }
