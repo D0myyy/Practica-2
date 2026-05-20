@@ -38,6 +38,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.concurrent.Task;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -104,6 +105,7 @@ public class AppUI extends Application {
         stage.setTitle("AirBook - Rezervare Bilete Avion");
         stage.setMinWidth(1280);
         stage.setMinHeight(780);
+        stage.getIcons().add(new Image(new File("ui/Logo.png").toURI().toString()));
 
         navIcons.put("Dashboard", "");
         navIcons.put("Zboruri", "");
@@ -144,7 +146,7 @@ public class AppUI extends Application {
 
         Label logo = new Label("AirBook");
         logo.getStyleClass().add("topbar-logo");
-        Label version = new Label("Rezervare Bilete Avion - v1.0");
+        Label version = new Label("Rezervare Bilete Avion");
         version.getStyleClass().add("topbar-subtitle");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
