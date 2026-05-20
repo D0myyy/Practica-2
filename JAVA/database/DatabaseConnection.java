@@ -10,14 +10,19 @@ public class DatabaseConnection {
             "databaseName=Rezervare_bilete_avion;" +
             "integratedSecurity=true;" +
             "encrypt=true;" +
-            "trustServerCertificate=true";
+            "trustServerCertificate=true;" +
+            "loginTimeout=5";
+
+    static {
+        DriverManager.setLoginTimeout(5);
+    }
 
     public static Connection getConnection() {
         try {
             String user = System.getenv("SQLSERVER_USER");
             String password = System.getenv("SQLSERVER_PASSWORD");
             if (user != null && !user.isBlank()) {
-                String url = "jdbc:sqlserver://localhost:1433;databaseName=Rezervare_bilete_avion;encrypt=true;trustServerCertificate=true";
+                String url = "jdbc:sqlserver://localhost:1433;databaseName=Rezervare_bilete_avion;encrypt=true;trustServerCertificate=true;loginTimeout=5";
                 return DriverManager.getConnection(url, user, password == null ? "" : password);
             }
             return DriverManager.getConnection(DEFAULT_URL);

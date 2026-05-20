@@ -45,6 +45,12 @@
     -fx-font-family: Consolas, "Cascadia Mono", monospace;
 }
 
+.db-loading {
+    -fx-text-fill: #f59e0b;
+    -fx-font-size: 11px;
+    -fx-font-family: Consolas, "Cascadia Mono", monospace;
+}
+
 .divider {
     -fx-background-color: #253047;
     -fx-pref-width: 1;

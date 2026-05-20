@@ -15,11 +15,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.application.Application;
@@ -32,6 +35,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.concurrent.Task;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -71,6 +75,12 @@ public class AppUI extends Application {
     private final ObservableList<Plata> plati = FXCollections.observableArrayList();
     private final ObservableList<Aeroport> aeroporturi = FXCollections.observableArrayList();
     private final ObservableList<Avion> avioane = FXCollections.observableArrayList();
+    private final ObservableList<Loc> locuri = FXCollections.observableArrayList();
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "airbook-db-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private final List<Button> navButtons = new ArrayList<>();
     private final Map<String, String> navIcons = new LinkedHashMap<>();
@@ -113,8 +123,13 @@ public class AppUI extends Application {
         stage.setScene(scene);
         stage.show();
 
-        loadAll();
         showDashboard();
+        loadAllAsync(true);
+    }
+
+    @Override
+    public void stop() {
+        dbExecutor.shutdownNow();
     }
 
     private Node topBar() {
@@ -164,8 +179,12 @@ public class AppUI extends Application {
         b.setMaxWidth(Double.MAX_VALUE);
         b.setAlignment(Pos.CENTER_LEFT);
         b.setOnAction(e -> {
-            activeScreen = text;
-            action.run();
+            try {
+                activeScreen = text;
+                action.run();
+            } catch (RuntimeException ex) {
+                showError("Eroare aplicatie", rootMessage(ex));
+            }
         });
         navButtons.add(b);
         return b;
@@ -195,27 +214,58 @@ public class AppUI extends Application {
         }
     }
 
-    private void loadAll() {
+    private DataSnapshot loadAll() {
         try {
-            aeroporturi.setAll(aeroportDAO.findAll());
-            avioane.setAll(avionDAO.findAll());
-            pasageri.setAll(pasagerDAO.findAll());
-            zboruri.setAll(zborDAO.findAll());
-            rezervari.setAll(rezervareDAO.findAll());
-            bilete.setAll(biletDAO.findAll());
-            plati.setAll(plataDAO.findAll());
-            if (dbStatus != null) {
-                dbStatus.setText("Rezervare_bilete_avion - SQL Server");
-                dbStatus.getStyleClass().setAll("db-online");
-            }
-            updateNavLabels();
+            return new DataSnapshot(
+                    aeroportDAO.findAll(),
+                    avionDAO.findAll(),
+                    locDAO.findAll(),
+                    pasagerDAO.findAll(),
+                    zborDAO.findAll(),
+                    rezervareDAO.findAll(),
+                    biletDAO.findAll(),
+                    plataDAO.findAll());
         } catch (RuntimeException ex) {
-            if (dbStatus != null) {
-                dbStatus.setText("Eroare conectare SQL Server");
-                dbStatus.getStyleClass().setAll("db-error");
-            }
-            showError("Conectare BD", rootMessage(ex));
+            throw ex;
         }
+    }
+
+    private void loadAllAsync(boolean renderAfter) {
+        setDbStatus("Se incarca datele...", "db-loading");
+        Task<DataSnapshot> task = new Task<>() {
+            @Override
+            protected DataSnapshot call() {
+                return loadAll();
+            }
+        };
+        task.setOnSucceeded(e -> {
+            applyData(task.getValue());
+            setDbStatus("Rezervare_bilete_avion - SQL Server", "db-online");
+            updateNavLabels();
+            if (renderAfter) renderActiveScreen();
+        });
+        task.setOnFailed(e -> {
+            setDbStatus("Eroare conectare SQL Server", "db-error");
+            showError("Conectare BD", rootMessage(task.getException()));
+        });
+        dbExecutor.submit(task);
+    }
+
+    private void applyData(DataSnapshot data) {
+        aeroporturi.setAll(data.aeroporturi);
+        avioane.setAll(data.avioane);
+        locuri.setAll(data.locuri);
+        pasageri.setAll(data.pasageri);
+        zboruri.setAll(data.zboruri);
+        rezervari.setAll(data.rezervari);
+        bilete.setAll(data.bilete);
+        plati.setAll(data.plati);
+    }
+
+    private void setDbStatus(String text, String styleClass) {
+        if (dbStatus == null) return;
+        dbStatus.setText(text);
+        dbStatus.getStyleClass().setAll(styleClass);
     }
 
     private void updateNavLabels() {
@@ -230,7 +280,10 @@ public class AppUI extends Application {
     }
 
     private void refreshCurrent() {
-        loadAll();
+        loadAllAsync(true);
+    }
+
+    private void renderActiveScreen() {
         if ("Zboruri".equals(activeScreen)) showZboruri();
         else if ("Pasageri".equals(activeScreen)) showPasageri();
         else if ("Rezervari".equals(activeScreen)) showRezervari();
@@ -451,18 +504,18 @@ public class AppUI extends Application {
         activeScreen = "Rezervari";
         TableView<Rezervare> table = table();
         table.getColumns().addAll(col("#", r -> String.valueOf(r.getIdRezervare()), 70), col("COD REZERVARE", Rezervare::getCodRezervare, 170),
-                col("DATA REZERVARE", r -> date(r.getDataRezervare()), 170), col("PASAGER", r -> firstTicket(r).getPasager().getNumeComplet(), 220),
-                col("ZBOR", r -> firstTicket(r).getZbor().getNumarZbor(), 120), col("LOC", r -> firstTicket(r).getLoc().getNumarLoc(), 90),
-                col("PRET (MDL)", r -> money(firstTicket(r).getPret()), 140), col("STATUS BILET", r -> firstTicket(r).getStatus().name(), 150),
+                col("DATA REZERVARE", r -> date(r.getDataRezervare()), 170), col("PASAGER", this::ticketPassenger, 220),
+                col("ZBOR", this::ticketFlight, 120), col("LOC", this::ticketSeat, 90),
+                col("PRET (MDL)", r -> money(ticketPrice(r)), 140), col("STATUS BILET", this::ticketStatus, 150),
                 col("PLATA", r -> paymentStatus(r.getIdRezervare()), 120));
         FilteredList<Rezervare> filtered = new FilteredList<>(rezervari, r -> true);
         table.setItems(filtered);
         TextField search = search("Cauta cod rezervare...");
         ComboBox<String> filter = filter("Toate", "Confirmate", "Anulate", "Platite", "Refuzate");
-        Runnable apply = () -> filtered.setPredicate(r -> match(search, r.getCodRezervare(), firstTicket(r).getPasager().getNumeComplet(), firstTicket(r).getZbor().getNumarZbor())
+        Runnable apply = () -> filtered.setPredicate(r -> match(search, r.getCodRezervare(), ticketPassenger(r), ticketFlight(r))
                 && ("Toate".equals(filter.getValue())
-                || ("Confirmate".equals(filter.getValue()) && firstTicket(r).getStatus() == StatusBilet.CONFIRMAT)
-                || ("Anulate".equals(filter.getValue()) && firstTicket(r).getStatus() == StatusBilet.ANULAT)
+                || ("Confirmate".equals(filter.getValue()) && "CONFIRMAT".equals(ticketStatus(r)))
+                || ("Anulate".equals(filter.getValue()) && "ANULAT".equals(ticketStatus(r)))
                 || ("Platite".equals(filter.getValue()) && paymentStatus(r.getIdRezervare()).contains("PLATIT"))
                 || ("Refuzate".equals(filter.getValue()) && paymentStatus(r.getIdRezervare()).contains("REFUZAT"))));
         wireFilters(apply, search, filter);
@@ -598,7 +651,13 @@ public class AppUI extends Application {
     private Node reportCard(String icon, String title, String desc, String tag, Runnable action) {
         VBox card = new VBox(10);
         card.getStyleClass().add("report-card");
-        card.setOnMouseClicked(e -> action.run());
+        card.setOnMouseClicked(e -> {
+            try {
+                action.run();
+            } catch (RuntimeException ex) {
+                showError("Eroare raport", rootMessage(ex));
+            }
+        });
         if (icon != null && !icon.isBlank()) {
             card.getChildren().add(label(icon, "report-icon"));
         }
@@ -607,7 +666,25 @@ public class AppUI extends Application {
     }
 
     private void runReport(String title, String sql) {
-        ReportData data = queryReportData(sql);
+        setDbStatus("Se genereaza raportul...", "db-loading");
+        Task<ReportData> task = new Task<>() {
+            @Override
+            protected ReportData call() {
+                return queryReportData(sql);
+            }
+        };
+        task.setOnSucceeded(e -> {
+            setDbStatus("Rezervare_bilete_avion - SQL Server", "db-online");
+            renderReport(title, task.getValue());
+        });
+        task.setOnFailed(e -> {
+            setDbStatus("Eroare SQL Server", "db-error");
+            showError("Eroare raport", rootMessage(task.getException()));
+        });
+        dbExecutor.submit(task);
+    }
+
+    private void renderReport(String title, ReportData data) {
         lastReportTitle = title;
         lastReportText = reportToText(data);
         VBox main = body();
@@ -753,8 +830,8 @@ public class AppUI extends Application {
         dialog.setResultConverter(btn -> {
             if (btn != ButtonType.OK) return null;
             return new Zbor(selected == null ? 0 : selected.getIdZbor(), numar.getText(), plecare.getValue(), sosire.getValue(), avion.getValue(),
-                    LocalDateTime.of(dataP.getValue(), LocalTime.parse(oraP.getText().trim())),
-                    LocalDateTime.of(dataS.getValue(), LocalTime.parse(oraS.getText().trim())));
+                    readDateTime(dataP, oraP, "Data/Ora plecarii"),
+                    readDateTime(dataS, oraS, "Data/Ora sosirii"));
         });
         saveDialog(dialog, z -> { if (selected == null) zborDAO.create(z); else zborDAO.update(z); });
     }
@@ -768,7 +845,7 @@ public class AppUI extends Application {
         addRow(form, 0, "Cod Rezervare *", cod, "Data *", data);
         addRow(form, 1, "Ora *", ora, "", label("", "muted"));
         dialog.getDialogPane().setContent(form);
-        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Rezervare(selected == null ? 0 : selected.getIdRezervare(), cod.getText(), LocalDateTime.of(data.getValue(), LocalTime.parse(ora.getText().trim()))) : null);
+        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Rezervare(selected == null ? 0 : selected.getIdRezervare(), cod.getText(), readDateTime(data, ora, "Data/Ora rezervarii")) : null);
         saveDialog(dialog, r -> { if (selected == null) rezervareDAO.create(r); else rezervareDAO.update(r); });
     }
 
@@ -782,9 +859,15 @@ public class AppUI extends Application {
         TextField pret = input(selected == null ? "" : String.format(Locale.US, "%.2f", selected.getPret()));
         ComboBox<StatusBilet> status = combo(FXCollections.observableArrayList(StatusBilet.values()));
         zbor.setOnAction(e -> {
-            loc.getItems().clear();
-            if (zbor.getValue() != null) loc.getItems().setAll(locDAO.findByAvionId(zbor.getValue().getAvion().getIdAvion()));
-            loc.getSelectionModel().selectFirst();
+            try {
+                loc.getItems().clear();
+                if (zbor.getValue() != null) loc.getItems().setAll(locuri.stream()
+                        .filter(item -> item.getIdAvion() == zbor.getValue().getAvion().getIdAvion())
+                        .collect(Collectors.toList()));
+                loc.getSelectionModel().selectFirst();
+            } catch (RuntimeException ex) {
+                showError("Eroare incarcare locuri", rootMessage(ex));
+            }
         });
         if (selected == null) {
             rezervare.getSelectionModel().selectFirst();
@@ -795,7 +878,9 @@ public class AppUI extends Application {
             selectById(rezervare, selected.getRezervare().getIdRezervare(), Rezervare::getIdRezervare);
             selectById(pasager, selected.getPasager().getIdPasager(), Pasager::getIdPasager);
             selectById(zbor, selected.getZbor().getIdZbor(), Zbor::getIdZbor);
-            loc.getItems().setAll(locDAO.findByAvionId(selected.getZbor().getAvion().getIdAvion()));
+            loc.getItems().setAll(locuri.stream()
+                    .filter(item -> item.getIdAvion() == selected.getZbor().getAvion().getIdAvion())
+                    .collect(Collectors.toList()));
             selectById(loc, selected.getLoc().getIdLoc(), Loc::getIdLoc);
             status.getSelectionModel().select(selected.getStatus());
         }
@@ -803,7 +888,7 @@ public class AppUI extends Application {
         addRow(form, 1, "Zbor *", zbor, "Loc *", loc);
         addRow(form, 2, "Pret (MDL) *", pret, "Status *", status);
         dialog.getDialogPane().setContent(form);
-        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Bilet(selected == null ? 0 : selected.getIdBilet(), rezervare.getValue(), pasager.getValue(), zbor.getValue(), loc.getValue(), Double.parseDouble(pret.getText().trim()), status.getValue()) : null);
+        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Bilet(selected == null ? 0 : selected.getIdBilet(), requiredCombo(rezervare, "Rezervarea"), requiredCombo(pasager, "Pasagerul"), requiredCombo(zbor, "Zborul"), requiredCombo(loc, "Locul"), parseNonNegativeDouble(pret, "Pretul"), requiredCombo(status, "Statusul")) : null);
         saveDialog(dialog, b -> { if (selected == null) biletDAO.create(b); else biletDAO.update(b); });
     }
 
@@ -826,7 +911,7 @@ public class AppUI extends Application {
         addRow(form, 0, "Rezervare *", rezervare, "Suma *", suma);
         addRow(form, 1, "Metoda *", metoda, "Status *", status);
         dialog.getDialogPane().setContent(form);
-        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Plata(selected == null ? 0 : selected.getIdPlata(), rezervare.getValue(), Double.parseDouble(suma.getText().trim()), metoda.getValue(), status.getValue(), LocalDateTime.now()) : null);
+        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Plata(selected == null ? 0 : selected.getIdPlata(), requiredCombo(rezervare, "Rezervarea"), parseNonNegativeDouble(suma, "Suma"), requiredCombo(metoda, "Metoda de plata"), requiredCombo(status, "Statusul platii"), LocalDateTime.now()) : null);
         saveDialog(dialog, p -> { if (selected == null) plataDAO.create(p); else plataDAO.update(p); });
     }
 
@@ -853,7 +938,7 @@ public class AppUI extends Application {
         addRow(form, 0, "Model avion *", model, "Capacitate *", capacitate);
         addRow(form, 1, "Data inregistrarii", data, "", label("Informativa pentru formular", "muted"));
         dialog.getDialogPane().setContent(form);
-        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Avion(selected == null ? 0 : selected.getIdAvion(), model.getText(), Integer.parseInt(capacitate.getText().trim())) : null);
+        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Avion(selected == null ? 0 : selected.getIdAvion(), model.getText(), parsePositiveInt(capacitate, "Capacitatea")) : null);
         saveDialog(dialog, a -> { if (selected == null) avionDAO.create(a); else avionDAO.update(a); });
     }
 
@@ -914,7 +999,13 @@ public class AppUI extends Application {
         Button b = new Button(text);
         b.getStyleClass().add("action-button");
         b.setStyle("-fx-background-color: " + color + "; -fx-text-fill: " + (ACCENT.equals(color) ? "#111827" : TEXT) + ";");
-        b.setOnAction(e -> action.run());
+        b.setOnAction(e -> {
+            try {
+                action.run();
+            } catch (RuntimeException ex) {
+                showError("Eroare aplicatie", rootMessage(ex));
+            }
+        });
         return b;
     }
 
@@ -966,6 +1057,53 @@ public class AppUI extends Application {
         DatePicker picker = new DatePicker(date);
         picker.getStyleClass().add("input");
         return picker;
+    }
+
+    private LocalDateTime readDateTime(DatePicker datePicker, TextField timeField, String fieldName) {
+        if (datePicker.getValue() == null) {
+            throw new IllegalArgumentException(fieldName + " este obligatorie.");
+        }
+        try {
+            return LocalDateTime.of(datePicker.getValue(), LocalTime.parse(requiredText(timeField, fieldName)));
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException(fieldName + " trebuie sa aiba ora in format HH:mm.");
+        }
+    }
+
+    private int parsePositiveInt(TextField field, String fieldName) {
+        try {
+            int value = Integer.parseInt(requiredText(field, fieldName));
+            if (value <= 0) throw new IllegalArgumentException(fieldName + " trebuie sa fie un numar pozitiv.");
+            return value;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(fieldName + " trebuie sa fie un numar intreg valid.");
+        }
+    }
+
+    private double parseNonNegativeDouble(TextField field, String fieldName) {
+        try {
+            double value = Double.parseDouble(requiredText(field, fieldName).replace(',', '.'));
+            if (value < 0) throw new IllegalArgumentException(fieldName + " nu poate fi negativ.");
+            return value;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(fieldName + " trebuie sa fie un numar valid.");
+        }
+    }
+
+    private String requiredText(TextField field, String fieldName) {
+        String value = field.getText();
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldName + " este obligatoriu.");
+        }
+        return value.trim();
+    }
+
+    private <T> T requiredCombo(ComboBox<T> combo, String fieldName) {
+        T value = combo.getValue();
+        if (value == null) {
+            throw new IllegalArgumentException(fieldName + " este obligatoriu.");
+        }
+        return value;
     }
 
     private Label formLabel(String text) {
@@ -1021,16 +1159,12 @@ public class AppUI extends Application {
     private <T> void saveDialog(Dialog<T> dialog, Saver<T> saver) {
         try {
             dialog.showAndWait().ifPresent(value -> {
-                try {
+                runDbOperation("Se salveaza datele...", () -> {
                     saver.save(value);
-                    refreshCurrent();
-                    showInfo("Operatie reusita", "Datele au fost salvate.");
-                } catch (RuntimeException ex) {
-                    showError("Eroare salvare", rootMessage(ex));
-                }
+                }, "Operatie reusita", "Datele au fost salvate.", "Eroare salvare");
             });
-        } catch (IllegalArgumentException | java.time.format.DateTimeParseException ex) {
-            showError("Date invalide", ex.getMessage());
+        } catch (RuntimeException ex) {
+            showError("Date invalide", rootMessage(ex));
         }
     }
 
@@ -1042,14 +1176,30 @@ public class AppUI extends Application {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Sigur doriti sa stergeti acest " + name + "?", ButtonType.YES, ButtonType.NO);
         styleDialog(confirm);
         confirm.showAndWait().filter(ButtonType.YES::equals).ifPresent(btn -> {
-            try {
+            runDbOperation("Se sterge inregistrarea...", () -> {
                 deleter.delete(selected);
-                refreshCurrent();
-                showInfo("Sters", "Inregistrarea a fost stearsa.");
-            } catch (RuntimeException ex) {
-                showError("Eroare stergere", rootMessage(ex));
-            }
+            }, "Sters", "Inregistrarea a fost stearsa.", "Eroare stergere");
         });
+    }
+
+    private void runDbOperation(String workingStatus, Runnable operation, String successHeader, String successMessage, String errorHeader) {
+        setDbStatus(workingStatus, "db-loading");
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                operation.run();
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> {
+            showInfo(successHeader, successMessage);
+            loadAllAsync(true);
+        });
+        task.setOnFailed(e -> {
+            setDbStatus("Eroare SQL Server", "db-error");
+            showError(errorHeader, rootMessage(task.getException()));
+        });
+        dbExecutor.submit(task);
     }
 
     private void showInfo(String header, String message) {
@@ -1081,6 +1231,8 @@ public class AppUI extends Application {
             showInfo("Export reusit", "Fisier salvat: " + file.getAbsolutePath());
         } catch (IOException ex) {
             showError("Eroare export", ex.getMessage());
+        } catch (RuntimeException ex) {
+            showError("Eroare export", rootMessage(ex));
         }
     }
 
@@ -1110,9 +1262,32 @@ public class AppUI extends Application {
     }
 
     private Bilet firstTicket(Rezervare rezervare) {
-        return bilete.stream().filter(b -> b.getRezervare().getIdRezervare() == rezervare.getIdRezervare()).findFirst()
-                .orElse(new Bilet(0, rezervare, pasageri.isEmpty() ? new Pasager(0, "Necunoscut", "Necunoscut", "x@mail.com", "000") : pasageri.get(0),
-                        zboruri.isEmpty() ? null : zboruri.get(0), locDAO.findAll().isEmpty() ? null : locDAO.findAll().get(0), 0, StatusBilet.IN_ASTEPTARE));
+        return bilete.stream().filter(b -> b.getRezervare().getIdRezervare() == rezervare.getIdRezervare()).findFirst().orElse(null);
+    }
+
+    private String ticketPassenger(Rezervare rezervare) {
+        Bilet ticket = firstTicket(rezervare);
+        return ticket == null || ticket.getPasager() == null ? "Fara bilet" : ticket.getPasager().getNumeComplet();
+    }
+
+    private String ticketFlight(Rezervare rezervare) {
+        Bilet ticket = firstTicket(rezervare);
+        return ticket == null || ticket.getZbor() == null ? "-" : ticket.getZbor().getNumarZbor();
+    }
+
+    private String ticketSeat(Rezervare rezervare) {
+        Bilet ticket = firstTicket(rezervare);
+        return ticket == null || ticket.getLoc() == null ? "-" : ticket.getLoc().getNumarLoc();
+    }
+
+    private double ticketPrice(Rezervare rezervare) {
+        Bilet ticket = firstTicket(rezervare);
+        return ticket == null ? 0 : ticket.getPret();
+    }
+
+    private String ticketStatus(Rezervare rezervare) {
+        Bilet ticket = firstTicket(rezervare);
+        return ticket == null || ticket.getStatus() == null ? "FARA_BILET" : ticket.getStatus().name();
     }
 
     private String paymentStatus(int idRezervare) {
@@ -1204,6 +1379,29 @@ public class AppUI extends Application {
     @FunctionalInterface private interface Saver<T> { void save(T item); }
     @FunctionalInterface private interface Deleter<T> { void delete(T item); }
     @FunctionalInterface private interface IdGetter<T> { int getId(T item); }
+
+    private static class DataSnapshot {
+        final List<Aeroport> aeroporturi;
+        final List<Avion> avioane;
+        final List<Loc> locuri;
+        final List<Pasager> pasageri;
+        final List<Zbor> zboruri;
+        final List<Rezervare> rezervari;
+        final List<Bilet> bilete;
+        final List<Plata> plati;
+
+        DataSnapshot(List<Aeroport> aeroporturi, List<Avion> avioane, List<Loc> locuri, List<Pasager> pasageri,
+                     List<Zbor> zboruri, List<Rezervare> rezervari, List<Bilet> bilete, List<Plata> plati) {
+            this.aeroporturi = aeroporturi;
+            this.avioane = avioane;
+            this.locuri = locuri;
+            this.pasageri = pasageri;
+            this.zboruri = zboruri;
+            this.rezervari = rezervari;
+            this.bilete = bilete;
+            this.plati = plati;
+        }
+    }
 
     private static class ReportData {
         final List<String> columns;
