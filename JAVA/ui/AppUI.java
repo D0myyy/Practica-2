@@ -24,12 +24,14 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -58,6 +60,9 @@ public class AppUI extends Application {
     private static final String BLUE = "#3b82f6";
     private static final String GREEN = "#10b981";
     private static final String RED = "#ef4444";
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]+(?:[ -][A-Za-z]+)*$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,20}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
 
     private final PasagerDAO pasagerDAO = new PasagerDAO();
     private final ZborDAO zborDAO = new ZborDAO();
@@ -798,7 +803,41 @@ public class AppUI extends Application {
         addRow(form, 0, "Nume *", nume, "Prenume *", prenume);
         addRow(form, 1, "Email *", email, "Telefon *", telefon);
         dialog.getDialogPane().setContent(form);
-        dialog.setResultConverter(btn -> btn == ButtonType.OK ? new Pasager(selected == null ? 0 : selected.getIdPasager(), nume.getText(), prenume.getText(), email.getText(), telefon.getText()) : null);
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.addEventFilter(ActionEvent.ACTION, e -> {
+            List<String> errors = new ArrayList<>();
+            try {
+                requireName(nume, "Numele");
+            } catch (IllegalArgumentException ex) {
+                errors.add(ex.getMessage());
+            }
+            try {
+                requireName(prenume, "Prenumele");
+            } catch (IllegalArgumentException ex) {
+                errors.add(ex.getMessage());
+            }
+            try {
+                requireEmail(email);
+            } catch (IllegalArgumentException ex) {
+                errors.add(ex.getMessage());
+            }
+            try {
+                requirePhone(telefon, "Telefonul");
+            } catch (IllegalArgumentException ex) {
+                errors.add(ex.getMessage());
+            }
+            if (!errors.isEmpty()) {
+                showError("Date invalide", String.join(System.lineSeparator(), errors));
+                e.consume();
+            }
+        });
+        dialog.setResultConverter(btn -> btn == ButtonType.OK
+            ? new Pasager(selected == null ? 0 : selected.getIdPasager(),
+            requireName(nume, "Numele"),
+            requireName(prenume, "Prenumele"),
+            requireEmail(email),
+            requirePhone(telefon, "Telefonul"))
+            : null);
         saveDialog(dialog, p -> { if (selected == null) pasagerDAO.create(p); else pasagerDAO.update(p); });
     }
 
@@ -1096,6 +1135,38 @@ public class AppUI extends Application {
             throw new IllegalArgumentException(fieldName + " este obligatoriu.");
         }
         return value.trim();
+    }
+
+
+    private String requireName(TextField field, String fieldName) {
+        String value = requiredText(field, fieldName);
+        if (!NAME_PATTERN.matcher(value).matches()) {
+            throw new IllegalArgumentException(fieldName + " trebuie sa contina doar litere, spatii sau cratime.");
+        }
+        return value;
+    }
+
+    private String requireEmail(TextField field) {
+        String value = requiredText(field, "Emailul");
+        if (!value.contains("@")) {
+            throw new IllegalArgumentException("Emailul trebuie sa contina caracterul @.");
+        }
+        if (!EMAIL_PATTERN.matcher(value).matches()) {
+            throw new IllegalArgumentException("Format email invalid.");
+        }
+        return value;
+    }
+
+    private String requirePhone(TextField field, String fieldName) {
+        String value = requiredText(field, fieldName);
+        if (!PHONE_PATTERN.matcher(value).matches()) {
+            throw new IllegalArgumentException(fieldName + " trebuie sa contina doar cifre si simboluri uzuale (+, -, spatiu).");
+        }
+        int digits = value.replaceAll("\\D", "").length();
+        if (digits < 6) {
+            throw new IllegalArgumentException(fieldName + " trebuie sa aiba cel putin 6 cifre.");
+        }
+        return value;
     }
 
     private <T> T requiredCombo(ComboBox<T> combo, String fieldName) {
