@@ -480,7 +480,10 @@ public class AppUI extends Application {
         wireFilters(apply, search, status, destinatie);
 
         HBox tb = toolbar();
-        tb.getChildren().addAll(button("Zbor nou", ACCENT, () -> zborDialog(null)), button("Actualizare", CARD, this::refreshCurrent), spacer(), search, destinatie, status);
+        tb.getChildren().addAll(button("Zbor nou", ACCENT, () -> zborDialog(null)), button("Actualizare", CARD, this::refreshCurrent),
+            button("Editeaza", BLUE, () -> zborDialog(table.getSelectionModel().getSelectedItem())),
+            button("Sterge", RED, () -> deleteSelected(table.getSelectionModel().getSelectedItem(), "zbor", z -> zborDAO.delete(z.getIdZbor()))),
+            spacer(), search, destinatie, status);
         setScreen("", "Zboruri", "Gestionarea tuturor zborurilor din sistem", tb, wrapTable(table), footer(zboruri.size() + " inregistrari - Pagina 1 din 7"));
     }
 
